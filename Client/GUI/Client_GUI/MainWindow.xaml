@@ -1,0 +1,11 @@
+﻿<Window x:Name="frmMain" x:Class="Client_GUI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MainWindow" Height="316" Width="261">
+    <Grid>
+        <TextBox x:Name="txtMsgBox" HorizontalAlignment="Left" Height="193" Margin="10,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="233"/>
+        <TextBox x:Name="txtUserBox" HorizontalAlignment="Left" Height="60" Margin="10,218,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="181"/>
+        <Button x:Name="btnSend" Content="Send" HorizontalAlignment="Left" Height="60" Margin="196,218,0,0" VerticalAlignment="Top" Width="47" Click="btnSend_Click"/>
+
+    </Grid>
+</Window>

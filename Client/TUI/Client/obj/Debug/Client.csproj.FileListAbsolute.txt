@@ -1,0 +1,15 @@
+L:\Documents\Code\C#\Projects\MaChe Messenger\Client\Client\bin\Debug\Client.exe.config
+L:\Documents\Code\C#\Projects\MaChe Messenger\Client\Client\bin\Debug\Client.exe
+L:\Documents\Code\C#\Projects\MaChe Messenger\Client\Client\bin\Debug\Client.pdb
+L:\Documents\Code\C#\Projects\MaChe Messenger\Client\Client\obj\Debug\Client.csprojResolveAssemblyReference.cache
+L:\Documents\Code\C#\Projects\MaChe Messenger\Client\Client\obj\Debug\Client.exe
+L:\Documents\Code\C#\Projects\MaChe Messenger\Client\Client\obj\Debug\Client.pdb
+K:\Documents\Code\C#\Projects\MaChe Messenger\Client\Client\bin\Debug\Client.exe.config
+K:\Documents\Code\C#\Projects\MaChe Messenger\Client\Client\obj\Debug\Client.exe
+K:\Documents\Code\C#\Projects\MaChe Messenger\Client\Client\obj\Debug\Client.pdb
+K:\Documents\Code\C#\Projects\MaChe Messenger\Client\Client\bin\Debug\Client.exe
+K:\Documents\Code\C#\Projects\MaChe Messenger\Client\Client\bin\Debug\Client.pdb
+K:\Documents\Code\C#\Projects\MaChe Messenger\Client\Client\obj\Debug\Client.csprojResolveAssemblyReference.cache
+\\ds-fs01\home$\matthew.carney\Desktop\MaChe Messenger\Client\Client\bin\Debug\Client.exe.config
+\\ds-fs01\home$\matthew.carney\Desktop\MaChe Messenger\Client\Client\obj\Debug\Client.exe
+\\ds-fs01\home$\matthew.carney\Desktop\MaChe Messenger\Client\Client\obj\Debug\Client.pdb
