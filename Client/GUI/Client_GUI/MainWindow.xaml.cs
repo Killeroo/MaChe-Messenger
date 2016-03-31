@@ -28,121 +28,69 @@ namespace Client_GUI
     public partial class MainWindow : Window
     {
 
+        // Local Variable Declaration
+        private static string version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+        Client client; // Client Object (communication etc)
+        String server; // Server Address
+        Int32 port; // Server Port
+
         public MainWindow()
         {
             InitializeComponent();
 
-            Main(); // Backend code entry
-        }
+            // Local Var setup
+            client = new Client(); // Get Client object
+            server = "127.0.0.1";
+            port = 13000;
 
-        /* BACKEND CODE */
+            // Client and GUI setup
+            frmMain.Title = "MaChe Messenger - Client [ALPHA]";
+            // Connect to server
+            txtMsgBox.AppendText("Looking for server on " + server + ":" + port + " . . . " + client.Connect("127.0.0.1"));
+            txtMsgBox.AppendText("Server found.\n");
 
-        private static NetworkStream stream; // stream used to read and write data to server
-        private static TcpClient client; // Stores client info when connected to server
+            txtMsgBox.AppendText("Welcome to MaChe Messenger v" + version + "\n");
+            txtMsgBox.AppendText("Send 'q' to quit.\n");
 
-        private void Main()
-        {
-
-            frmMain.Title = "MaChe Messenger v0.1 - Client";
-
-            Connect("127.0.0.1"); // Connect to server
-
-            txtMsgBox.AppendText("\nPlease enter a username : ");
-
-            SendClientData(Console.ReadLine());
-
-            txtMsgBox.AppendText("Welcome to MaChe Messenger v0.1\n");
-            txtMsgBox.AppendText("Send 'q' to quit.\n\n");
+            //txtMsgBox.AppendText("\nPlease enter a username : ");
 
         }
 
-        // Connect to messaging server 
-        private void Connect(String server)
+        private void SendMessage() // Common send message event code 
         {
-            try
-            {
-                Int32 port = 13000; // default port to listen to
-
-                txtMsgBox.AppendText("Looking for server on " + server + ":" + port + " . . . ");
-
-                TcpClient client = new TcpClient(server, port); // Connect to server on stated port and address
-
-                txtMsgBox.AppendText("server found.\n");
-
-                stream = client.GetStream(); // Get stream to communicate
-
-                SendClientData("GUI_User");
-
-                txtMsgBox.AppendText("Connected to server.\n");
-            }
-            //catch (ArgumentNullException e)
-            catch (SocketException e)
-            {
-                //WriteErrorMessage(e, "SocketException", "Error occured while trying to connect to server. Please try again.", true);
-            }
-        }
-
-        // Send string message to server
-        private void SendMessage(string message)
-        {
-            try
-            {
-                Byte[] buffer = new Byte[4096]; // Message buffer
-
-                // Convert ascii string to bytes to be sent
-                buffer = System.Text.Encoding.ASCII.GetBytes(message);
-
-                // Send message on stream to server
-                stream.Write(buffer, 0, buffer.Length);
-            }
-            catch (SocketException e)
-            {
-                //WriteErrorMessage(e, "SocketException", "Error occured sending message.");
-            }
-            catch (IOException e)
-            {
-                //WriteErrorMessage(e, "IOException", "Connection error when sending message", true);
-            }
-        }
-
-        // Send inital client data to server
-        private void SendClientData(string username)
-        {
-            // Safe check username
-            SendMessage("'#INITIALDATA#':" + username + ":"); // Send initial data to server
-        }
-
-        // Disconnect from messaging server
-        private void Disconnect()
-        {
-            try
-            {
-                stream.Close();
-                client.Close();
-            }
-            catch (NullReferenceException) { }
-            finally
-            {
-                txtMsgBox.AppendText("Connection closed.");
-            }
-        }
-
-        private void btnSend_Click(object sender, RoutedEventArgs e)
-        {
-            SendMessage(txtUserBox.Text);
-            txtMsgBox.AppendText("\n[Me] " + txtUserBox);
-
             if (txtUserBox.Text == "q") // Quit flag
             {
                 // Send quit string
-                SendMessage(":IQUIT:");
-                Disconnect();
+                client.SendMessage(":IQUIT:");
+                client.Disconnect();
             }
             else if (txtUserBox.Text.Length != 0) // send when there is something to send
             {
-                SendMessage(txtUserBox.Text);
+                txtMsgBox.AppendText(client.SendMessage(txtUserBox.Text) + "\n");
+            }
+
+            txtUserBox.Clear();
+        }
+
+        /* Event Handlers */
+
+        private void btnSend_Click(object sender, RoutedEventArgs e)
+        {
+            SendMessage();
+        }
+
+        private void txtUser_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (chkEnter.IsChecked.Value)
+            {
+                if (e.Key == Key.Enter)
+                {
+                    SendMessage();
+                }
             }
         }
+
+        
 
     }
 }

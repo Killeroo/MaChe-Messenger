@@ -48,15 +48,15 @@ namespace Server
     class Program
     {
         // Global variable declaration
+        private static string version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
         object syncLock = new Object(); // Locking object (stops two threads using same code)
         List<Task> pendingConns = new List<Task>(); // list of connections to be established
-
         List<TcpClient> conns = new List<TcpClient>(); // List of connected clients
 
         static void Main(string[] args)
         {
             Console.CursorVisible = false;
-            Console.WriteLine("MaChe Messenger - Server V0.2");
+            Console.WriteLine("MaChe Messenger - Server v" + version + " [ALPHA]");
             Console.WriteLine("Hit Ctrl-C to exit.\n");
 
             new Program().StartListener().Wait(); // Start core server method
