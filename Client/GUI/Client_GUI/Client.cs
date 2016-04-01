@@ -19,6 +19,7 @@ namespace Client_GUI
     {
         private static NetworkStream stream; // stream used to read and write data to server
         private static TcpClient client; // Stores client info when connected to server
+        public NetworkStream ServerStream { get {return stream; } } // Server stream getter
 
         public Client() { } // Constructor
 
@@ -33,11 +34,11 @@ namespace Client_GUI
 
                 this.SendInitialData(username); // Send username to server
 
-                strReturn = "Connected\n";
+                strReturn = "Connected";
             }
             catch (SocketException e)
             {
-                strReturn = "Could not find server\n" + e;
+                strReturn = "Could not find server\r" + e;
             }
 
             return strReturn;

@@ -6,11 +6,9 @@
         <TextBox x:Name="txtUserBox" HorizontalAlignment="Left" Height="58" Margin="10,228,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="276" KeyDown="txtUser_KeyDown"/>
         <Button x:Name="btnSend" Content="Send" HorizontalAlignment="Left" Height="58" Margin="291,228,0,0" VerticalAlignment="Top" Width="47" Click="btnSend_Click"/>
         <CheckBox x:Name="chkEnter" Content="Press 'enter' to send" HorizontalAlignment="Left" Margin="214,208,0,0" VerticalAlignment="Top" IsChecked="True"/>
-        <RichTextBox x:Name="txtMsgBox" HorizontalAlignment="Left" Height="193" Margin="10,10,0,0" VerticalAlignment="Top" Width="328">
+        <RichTextBox x:Name="txtMsgBox" HorizontalAlignment="Left" Height="193" Margin="10,10,0,0" VerticalAlignment="Top" Width="328" IsReadOnly="True" TextChanged="txtMsgBox_TextChanged">
             <FlowDocument>
-                <Paragraph>
-                    <Run Text=""/>
-                </Paragraph>
+                <Paragraph/>
             </FlowDocument>
         </RichTextBox>
 

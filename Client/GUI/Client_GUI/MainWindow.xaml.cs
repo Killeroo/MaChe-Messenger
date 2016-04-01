@@ -13,12 +13,13 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+using System.ComponentModel;
+
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
 
-// Sort out gui
-// AFTER getting prroof of concept working communicatio  with server working
+// Auto search functionality
 
 namespace Client_GUI
 {
@@ -30,6 +31,7 @@ namespace Client_GUI
 
         // Local Variable Declaration
         private static string version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
+        private readonly BackgroundWorker listeningWorker = new BackgroundWorker(); // Background worker for getting server messages
         Client client; // Client Object (communication etc)
         String server; // Server Address
         Int32 port; // Server Port
@@ -39,21 +41,28 @@ namespace Client_GUI
             InitializeComponent();
 
             // Local Var setup
+            string connectStatus; // Status of client-server connection
+            bool connected; // Are we connected?
             client = new Client(); // Get Client object
-            server = "127.0.0.1";
+            server = "192.168.1.29";
             port = 13000;
 
-            // Client and GUI setup
+            /* Client, backgroundworker and GUI setup */
             frmMain.Title = "MaChe Messenger - Client [ALPHA]";
-            // Connect to server
-            txtMsgBox.AppendText("Looking for server on " + server + ":" + port + " . . . " + client.Connect("127.0.0.1"));
-            txtMsgBox.AppendText("Server found.\n");
-
-            txtMsgBox.AppendText("Welcome to MaChe Messenger v" + version + "\n");
+            txtMsgBox.AppendText("Welcome to MaChe Messenger v" + version + "\r");
             txtMsgBox.AppendText("Send 'q' to quit.\n");
+            txtMsgBox.AppendText("Looking for server on " + server + ":" + port + " . . . ");
 
-            //txtMsgBox.AppendText("\nPlease enter a username : ");
+            connectStatus = client.Connect(server); // Connect to server
+            connected = connectStatus.Equals("Connected"); 
 
+            txtMsgBox.AppendText(connectStatus + "\r"); 
+            txtMsgBox.AppendText(connected ? "Server found.\n" : "Server not found.\n");
+            listeningWorker.DoWork += listeningWorker_DoWork; // Assign do work function
+
+            // If connected, start listening for server response
+            if (connected)
+                listeningWorker.RunWorkerAsync();
         }
 
         private void SendMessage() // Common send message event code 
@@ -63,13 +72,36 @@ namespace Client_GUI
                 // Send quit string
                 client.SendMessage(":IQUIT:");
                 client.Disconnect();
+                Environment.Exit(0);
             }
             else if (txtUserBox.Text.Length != 0) // send when there is something to send
             {
-                txtMsgBox.AppendText(client.SendMessage(txtUserBox.Text) + "\n");
+                client.SendMessage(txtUserBox.Text);
             }
 
             txtUserBox.Clear();
+        }
+
+        /* Background worker */
+
+        void listeningWorker_DoWork(object sender, DoWorkEventArgs e)
+        {// Move to function
+            // Listen for response from server
+            var stream = client.ServerStream;
+
+            try
+            {
+                while (true)
+                {
+                    var buffer = new byte[4096]; // Read buffer
+                    var serverByteCount = stream.Read(buffer, 0, buffer.Length); // Get Bytes sent by server
+                    var serverResponse = System.Text.Encoding.UTF8.GetString(buffer, 0, serverByteCount);
+                    Dispatcher.Invoke(new Action(() => { txtMsgBox.AppendText(serverResponse + "\r"); })); // Access the message box using controls dispatcher for safe multi thread access
+                }
+            }
+            catch (IOException) { }
+            catch (Exception) { }
+            //throw new NotImplementedException();
         }
 
         /* Event Handlers */
@@ -90,7 +122,10 @@ namespace Client_GUI
             }
         }
 
-        
+        private void txtMsgBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            txtMsgBox.ScrollToEnd();
+        }
 
     }
 }
