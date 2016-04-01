@@ -12,6 +12,8 @@
 /* Author             Version     Comments                          Date     */
 /*****************************************************************************/
 /*                                                                           */
+/* Matthew Carney      0.30       Added client message broadcast             */
+/*                                to all other clients                       */
 /* Matthew Carney      0.21       Rewrote server logging, added     24/03/16 */
 /*                                usernames and rudermentary client          */
 /*                                server handshake.                          */
@@ -28,10 +30,6 @@
 /*  task - https://msdn.microsoft.com/en-gb/library/system.threading.tasks.task(v=vs.110).aspx
 /*  await - https://msdn.microsoft.com/en-GB/library/hh156528.aspx
 /*****************************************************************************/
-
-// get client read stream function in new thread
-
-// Test send to all function and update
 
 using System;
 using System.Collections.Generic;
@@ -60,7 +58,7 @@ namespace Server
             Console.WriteLine("Hit Ctrl-C to exit.\n");
 
             new Program().StartListener().Wait(); // Start core server method
-        }
+        } // Entry point
 
         private async Task StartListener()
         {
@@ -91,7 +89,7 @@ namespace Server
             }
             catch (Exception e)
             {
-                LogMessage(e.Message.ToString(),"Server","Error");
+                LogMessage(e.Message.ToString(),"","Error");
             }
             finally
             {
@@ -121,6 +119,8 @@ namespace Server
                     var initialString = System.Text.Encoding.UTF8.GetString(bufferB, 0, initialData);
                     username = initialString.Split(':')[1];
 
+                    await SendClientsMsgAsync(username + " has connected."); // tell clients someone has connected
+
                     LogMessage("Client [" + username + "] has connected");
                     LogMessage("Listening to " + username + "...");
 
@@ -136,39 +136,47 @@ namespace Server
                             LogMessage(clientString, username, "Message");
 
                         /* Send out message to all clients */
-                        var sendAllTask = SendClientsMsgAsync(username, clientString);
+                        var sendAllTask = SendClientsMsgAsync(clientString, username);
                         await sendAllTask;
                     }
-
-                    // Remove client from active connections
-                    lock (syncLock)
-                        conns.Remove(tcpClient);
 
                     LogMessage("Disconnected from " + username + ".");
                 }
             }
             catch (IOException)
             {
-                LogMessage("Client [" + username + "] unexpectedly disconnected.", "Server", "Warning");
-                // Bug occuring here terminate this task when it fails
+                LogMessage("Client [" + username + "] unexpectedly disconnected.", "", "Warning");
             }
-            //finally
-            //{
+            finally
+            {
+                tcpClient.Close(); // Close connection
 
-            //}
+                lock (syncLock)
+                    conns.Remove(tcpClient); // Remove client from active connections
+            }
+            
+            await SendClientsMsgAsync(username + " has disconnected."); // Tell all clients someone has disconnected
+
         } // Handle client connection
 
-        private async Task SendClientsMsgAsync(string username, string message)
+        private async Task SendClientsMsgAsync(string message, string username = "")
         {
             Byte[] buffer = new Byte[4096];
-            buffer = System.Text.Encoding.ASCII.GetBytes(message);
+            StringBuilder builder = new StringBuilder();
+
+            if (username != "")
+                builder.Append("[" + username + "] " + message);
+            else
+                builder.Append(message);
+
+            buffer = System.Text.Encoding.ASCII.GetBytes(builder.ToString()); // convert string to bytes to send
 
             foreach (var client in conns) // Send message to all clients
             {
                 var stream = client.GetStream();
                 await stream.WriteAsync(buffer, 0, buffer.Length);
             }
-        }
+        } // Broadcasts messages to all connected clients
 
         static void LogMessage(string message, string header = "Server", string status = "", bool newLine = true)
         {
