@@ -19,9 +19,9 @@ using System.Net;
 using System.Net.Sockets;
 using System.IO;
 
-// TODO: Auto search functionality for server
+//using System.Drawing;
 
-// TODO: add unload event to correctly dc from server when window is closed
+// TODO: Auto search functionality for server
 
 namespace Client_GUI
 {
@@ -72,14 +72,19 @@ namespace Client_GUI
                 listeningWorker.RunWorkerAsync();
         }
 
-        private void SendMessage() // Common send message event code 
+        public void SetMsgBoxText(string text) 
+        {
+            Dispatcher.Invoke(new Action(() => { txtMsgBox.AppendText(text + "\r"); })); // Access the message box using controls dispatcher for safe multi thread access
+        } // Threadsafe setting of text in txtMsgBox
+
+        private void SendTextMessage() // Common send message event code 
         {
             if (txtUserBox.Text == "q") // Quit flag
             {
                 // Send quit string
                 client.SendMessage(":IQUIT:");
                 client.Disconnect();
-                Environment.Exit(0);
+                Application.Current.Shutdown();
             }
             else if (txtUserBox.Text.Length != 0) // send when there is something to send
             {
@@ -88,7 +93,10 @@ namespace Client_GUI
 
             txtUserBox.Clear();
         }
+        private void SendImageMessage() // Send image event code
+        {
 
+        }
         private void FindServer() // Searches on LAN for server
         {
             
@@ -99,6 +107,9 @@ namespace Client_GUI
 
         void listeningWorker_DoWork(object sender, DoWorkEventArgs e)
         {// MOVE
+            
+            // SWITCH CLIENT TO ASYNC SO CAN RECIEVE MESSAGES AND IMAGES AT THE SAME TIME
+
             // Listen for response from server
             var stream = client.ServerStream;
 
@@ -116,8 +127,15 @@ namespace Client_GUI
             catch (Exception) { }
         }
 
+
         /* Event Handlers */
 
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
+        {
+            // Send quit string
+            client.SendMessage(":IQUIT:");
+            client.Disconnect();
+        }
         private void txtMsgBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             txtMsgBox.ScrollToEnd();
@@ -145,7 +163,7 @@ namespace Client_GUI
         // Tab 'Text' Events
         private void btnSend_Click(object sender, RoutedEventArgs e)
         {
-            SendMessage();
+            SendTextMessage();
         }
         private void txtUser_KeyDown(object sender, KeyEventArgs e)
         {
@@ -153,7 +171,7 @@ namespace Client_GUI
             {
                 if (e.Key == Key.Enter)
                 {
-                    SendMessage();
+                    SendTextMessage();
                 }
             }
         }
@@ -204,29 +222,6 @@ namespace Client_GUI
             memStream.Close();
             System.IO.File.WriteAllBytes("test.png", memStream.ToArray()); // Write out to file in exe dir
 
-
-            // Displaying image in RTF (Raw)
-            //http://stackoverflow.com/questions/542850/how-can-i-insert-an-image-into-a-richtextbox
-
-            // Displaying image in RTF (In depth)
-            //http://stackoverflow.com/questions/18017044/insert-image-at-cursor-position-in-rich-text-box
-
-            // Sending an image
-            //http://stackoverflow.com/questions/32685333/send-image-from-c-sharp-to-python-through-tcp-not-working
-
-            // Saving an image from canvas
-            //http://www.ageektrapped.com/blog/how-to-save-xaml-as-an-image/
-
-            // Versioning
-            //http://stackoverflow.com/questions/826777/how-to-have-an-auto-incrementing-version-number-visual-studio
-
-            // Popup
-            //http://stackoverflow.com/questions/11499932/wpf-popup-window
-
-            // Base Drawing
-            //http://stackoverflow.com/questions/16037753/wpf-drawing-on-canvas-with-mouse-events
-
-
         }
         private void btnCanvasClear_Click(object sender, RoutedEventArgs e)
         {
@@ -276,7 +271,26 @@ namespace Client_GUI
         private void btnPenColour_Custom_Click(object sender, RoutedEventArgs e)
         {
             // TODO: Add colour picker
+            Paragraph para = new Paragraph();
+            para.Inlines.Add("[Test_User]\r");
+
+            BitmapImage bitmapPic = new BitmapImage(new Uri(@"C:\test.png"));
+            Image pic = new Image();
+            pic.Source = bitmapPic;
+            pic.Width = 150;//20;
+            para.Inlines.Add(pic);
+            para.Inlines.Add("\r");
+
+            txtMsgBox.Document.Blocks.Add(para);
         }
-       
+
+        //private static Byte[] ImageToByteArray(System.Drawing.Image image) // Convert Image object to byte array
+        //{
+        //    using (var memStream = new MemoryStream())
+        //    {
+        //        image.Save(memStream, System.Drawing.Imaging.ImageFormat.Png);
+        //        return memStream.ToArray();
+        //    }
+        //}
     }
 }
