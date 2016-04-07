@@ -14,6 +14,7 @@ using System.Drawing;
 
 using System.Windows.Documents;
 
+// TODO: add_drawing: remove dont need async, maybe?
 
 namespace Client_GUI
 {

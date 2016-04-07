@@ -8,6 +8,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.IO;
 
+using System.Drawing;
+
 namespace Client_GUI
 {
     /// <summary>
@@ -77,6 +79,11 @@ namespace Client_GUI
             //{
                 
             //}
+        }
+
+        public void SendImage(Image img)
+        {
+            // TODO: add_drawing
         }
 
         public string Disconnect() // Disconnect from messaging server

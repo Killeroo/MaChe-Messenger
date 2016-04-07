@@ -19,6 +19,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.IO;
 
+using System.Drawing.Imaging;
+
 //using System.Drawing;
 
 // TODO: Auto search functionality for server
@@ -72,6 +74,7 @@ namespace Client_GUI
                 listeningWorker.RunWorkerAsync();
         }
 
+        // Get rid of
         public void SetMsgBoxText(string text) 
         {
             Dispatcher.Invoke(new Action(() => { txtMsgBox.AppendText(text + "\r"); })); // Access the message box using controls dispatcher for safe multi thread access
@@ -92,39 +95,58 @@ namespace Client_GUI
             }
 
             txtUserBox.Clear();
-        }
-        private void SendImageMessage() // Send image event code
-        {
-
-        }
+        }/
         private void FindServer() // Searches on LAN for server
         {
             
         }
 
-
         /* Background worker */
 
         void listeningWorker_DoWork(object sender, DoWorkEventArgs e)
-        {// MOVE
-            
-            // SWITCH CLIENT TO ASYNC SO CAN RECIEVE MESSAGES AND IMAGES AT THE SAME TIME
+        {
 
             // Listen for response from server
-            var stream = client.ServerStream;
-
-            try
+            using (var stream = client.ServerStream) 
             {
-                while (true)
+                try
                 {
-                    var buffer = new byte[4096]; // Read buffer
-                    var serverByteCount = stream.Read(buffer, 0, buffer.Length); // Get Bytes sent by server
-                    var serverResponse = System.Text.Encoding.UTF8.GetString(buffer, 0, serverByteCount);
-                    Dispatcher.Invoke(new Action(() => { txtMsgBox.AppendText(serverResponse + "\r"); })); // Access the message box using controls dispatcher for safe multi thread access
+                    while (true)
+                    {
+                        var buffer = new byte[4096]; // Read buffer
+                        var serverByteCount = stream.Read(buffer, 0, buffer.Length); // Get Bytes sent by server
+                        var serverResponse = System.Text.Encoding.UTF8.GetString(buffer, 0, serverByteCount);
+                        if (serverResponse == ":IMAGE:")
+                        {
+                            // If Image tag, listen for image
+                            buffer = new byte[4096]; // Reset buffer
+                            stream.Read(buffer, 0, buffer.Length); // Listen for image
+
+                            var imgMemStream = new MemoryStream(buffer); // Store in memory stream
+                            var pngDecorder = new PngBitmapDecoder(imgMemStream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
+                            var pngSource = pngDecorder.Frames[0];
+                            var img = new System.Windows.Controls.Image();
+
+                            img.Source = pngSource;
+                            img.Width = 120;
+
+                            Paragraph para = new Paragraph();
+                            para.Inlines.Add(img);
+
+                            // Display using dispather
+                            Dispatcher.Invoke(new Action(() => { txtMsgBox.Document.Blocks.Add(para); })); // Access the message box using controls dispatcher for safe multi thread access
+                        }
+                        else
+                        {
+                            // Display text normally
+                            Dispatcher.Invoke(new Action(() => { txtMsgBox.AppendText(serverResponse + "\r"); })); // Access the message box using controls dispatcher for safe multi thread access
+                        }
+                    
+                    }
                 }
+                catch (IOException) { }
+                catch (Exception) { }
             }
-            catch (IOException) { }
-            catch (Exception) { }
         }
 
 
