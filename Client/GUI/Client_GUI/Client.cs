@@ -23,9 +23,10 @@ namespace Client_GUI
 
         public Client() { } // Constructor
 
-        public string Connect(String server, string username = "GUI_USER", Int32 port = 13000) // Connect to messaging server 
+        public bool Connect(String server, string username = "GUI_USER", Int32 port = 13000) // Connect to messaging server 
         {
-            string strReturn = null; // Return String
+            //string strReturn = null; // Return String
+            bool blnReturn = false;
 
             try
             {
@@ -34,14 +35,16 @@ namespace Client_GUI
 
                 this.SendInitialData(username); // Send username to server
 
-                strReturn = "Connected";
+                //strReturn = "Connected";
+                blnReturn = true;
             }
             catch (SocketException e)
             {
-                strReturn = "Could not find server\r" + e;
+                //strReturn = "Could not find server\r" + e;
+                blnReturn = false;
             }
 
-            return strReturn;
+            return blnReturn;
         }
 
         private void SendInitialData(string username) // Send inital client data to server

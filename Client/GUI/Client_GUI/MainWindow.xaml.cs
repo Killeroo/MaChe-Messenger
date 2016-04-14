@@ -41,23 +41,22 @@ namespace Client_GUI
             InitializeComponent();
 
             // Local Var setup
-            string connectStatus; // Status of client-server connection
             bool connected; // Are we connected?
             client = new Client(); // Get Client object
-            server = "192.168.1.29";
+            server = "127.0.0.1";
             port = 13000;
 
-            /* Client, backgroundworker and GUI setup */
+            /* Client, statusbar, backgroundworker and GUI setup */
+            // TODO: Split into seperate functions
             frmMain.Title = "MaChe Messenger - Client [ALPHA]";
             txtMsgBox.AppendText("Welcome to MaChe Messenger v" + version + "\r");
             txtMsgBox.AppendText("Send 'q' to quit.\n");
-            txtMsgBox.AppendText("Looking for server on " + server + ":" + port + " . . . ");
 
-            connectStatus = client.Connect(server); // Connect to server
-            connected = connectStatus.Equals("Connected"); 
+            connected = client.Connect(server); // Connect to server
 
-            txtMsgBox.AppendText(connectStatus + "\r"); 
-            txtMsgBox.AppendText(connected ? "Server found.\n" : "Server not found.\n");
+            UpdateStatusBar(connected);
+            lblServerAddr.Text = "Server: " + server + ":" + port;
+            
             listeningWorker.DoWork += listeningWorker_DoWork; // Assign do work function
 
             // If connected, start listening for server response
@@ -80,6 +79,20 @@ namespace Client_GUI
             }
 
             txtUserBox.Clear();
+        }
+
+        private void UpdateStatusBar(bool connected)
+        {
+            if (connected)
+            {
+                lblConnectStatus.Text = "    CONNECTED    ";
+                lblConnectStatus.Background = Brushes.DarkGreen;
+            }
+            else
+            {
+                lblConnectStatus.Text = " DISCONNECTED ";
+                lblConnectStatus.Background = Brushes.DarkRed;
+            }
         }
 
         /* Background worker */
@@ -108,7 +121,9 @@ namespace Client_GUI
 
         private void btnSend_Click(object sender, RoutedEventArgs e)
         {
-            SendMessage();
+            //SendMessage();
+            ConnectPopup popup = new ConnectPopup();
+            popup.ShowDialog();
         }
 
         private void txtUser_KeyDown(object sender, KeyEventArgs e)
@@ -125,6 +140,12 @@ namespace Client_GUI
         private void txtMsgBox_TextChanged(object sender, TextChangedEventArgs e)
         {
             txtMsgBox.ScrollToEnd();
+        }
+
+        private void txtUserBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            // Update status bar
+            lblMsgLength.Text = "Len: " + txtUserBox.Text.Length + "/400";
         }
 
     }

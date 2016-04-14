@@ -21,3 +21,9 @@ C:\SideProjects\MaChe Messenger\Server\Server\obj\Debug\Server.pdb
 C:\SideProjects\MaChe Messenger\Server\Server\bin\Debug\Server.exe
 C:\SideProjects\MaChe Messenger\Server\Server\bin\Debug\Server.pdb
 C:\SideProjects\MaChe Messenger\Server\Server\obj\Debug\Server.csprojResolveAssemblyReference.cache
+C:\SideProjects\MaChe Master\Server\Server\bin\Debug\Server.exe.config
+C:\SideProjects\MaChe Master\Server\Server\obj\Debug\Server.exe
+C:\SideProjects\MaChe Master\Server\Server\obj\Debug\Server.pdb
+C:\SideProjects\MaChe Master\Server\Server\bin\Debug\Server.exe
+C:\SideProjects\MaChe Master\Server\Server\bin\Debug\Server.pdb
+C:\SideProjects\MaChe Master\Server\Server\obj\Debug\Server.csprojResolveAssemblyReference.cache

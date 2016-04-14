@@ -4,17 +4,17 @@
 winexe
 C#
 .cs
-C:\SideProjects\MaChe Messenger\Client\GUI\Client_GUI\obj\Debug\
+C:\SideProjects\MaChe Master\Client\GUI\Client_GUI\obj\Debug\
 Client_GUI
 none
 false
 DEBUG;TRACE
-C:\SideProjects\MaChe Messenger\Client\GUI\Client_GUI\App.xaml
-11151548125
+C:\SideProjects\MaChe Master\Client\GUI\Client_GUI\App.xaml
+2-316192028
 
-10512392117
+11-1315545834
 12-1401562060
-MainWindow.xaml;
+ConnectPopup.xaml;MainWindow.xaml;
 
 False
 
