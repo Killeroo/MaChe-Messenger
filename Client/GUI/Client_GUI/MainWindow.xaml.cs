@@ -45,7 +45,7 @@ namespace Client_GUI
             client = new Client(); // Get Client object
             server = "127.0.0.1";
             port = 13000;
-
+            
             /* Client, statusbar, backgroundworker and GUI setup */
             // TODO: Split into seperate functions
             frmMain.Title = "MaChe Messenger - Client [ALPHA]";
@@ -119,9 +119,17 @@ namespace Client_GUI
 
         /* Event Handlers */
 
+        private void MainWindow_Closing(object sender, CancelEventArgs e)
+        {
+            // Send quit string
+            client.SendMessage(":IQUIT:");
+            client.Disconnect();
+        }
+
         private void btnSend_Click(object sender, RoutedEventArgs e)
         {
             //SendMessage();
+            
             ConnectPopup popup = new ConnectPopup();
             popup.ShowDialog();
         }

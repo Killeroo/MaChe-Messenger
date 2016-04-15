@@ -8,6 +8,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.IO;
 
+// TODO: Remove string returns change to bools
+
 namespace Client_GUI
 {
     /// <summary>
@@ -21,12 +23,21 @@ namespace Client_GUI
         private static TcpClient client; // Stores client info when connected to server
         public NetworkStream ServerStream { get {return stream; } } // Server stream getter
 
+        // Connection attributes
+        private string serverAddr { get; set; }
+        private Int32 serverPort { get; set; }
+        private string name { get; set; }
+        private bool connected { get; set; }
+
         public Client() { } // Constructor
 
         public bool Connect(String server, string username = "GUI_USER", Int32 port = 13000) // Connect to messaging server 
         {
-            //string strReturn = null; // Return String
             bool blnReturn = false;
+
+            serverAddr = server;
+            serverPort = port;
+            name = username;
 
             try
             {
@@ -35,12 +46,11 @@ namespace Client_GUI
 
                 this.SendInitialData(username); // Send username to server
 
-                //strReturn = "Connected";
+                connected = true;
                 blnReturn = true;
             }
-            catch (SocketException e)
+            catch (SocketException)
             {
-                //strReturn = "Could not find server\r" + e;
                 blnReturn = false;
             }
 
@@ -95,6 +105,7 @@ namespace Client_GUI
             finally
             {
                 strReturn = "Connection closed.";
+                connected = false;
             }
 
             return strReturn;
