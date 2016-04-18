@@ -16,7 +16,7 @@
                 <TextBox Name="txtServerPort" HorizontalAlignment="Left" VerticalAlignment="Bottom" Height="23" Margin="208,0,0,2" TextWrapping="Wrap" Text="13000" Width="44"/>
             </Grid>
         </GroupBox>
-        <Button Name="btnConnect" Content="Connect" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,5,5" Width="75"/>
-        <CheckBox Content="Remember selection" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,10" Width="137"/>
+        <Button Name="btnConnect" Content="Connect" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,5,5" Width="75" Click="btnConnect_Click"/>
+        <CheckBox Name="chkRemSettings" Content="Remember selection" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,10" Width="137"/>
     </Grid>
 </Window>

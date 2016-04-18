@@ -34,6 +34,7 @@ namespace Client_GUI
         private readonly BackgroundWorker listeningWorker = new BackgroundWorker(); // Background worker for getting server messages
         Client client; // Client Object (communication etc)
         String server; // Server Address
+        String username;
         Int32 port; // Server Port
 
         public MainWindow()
@@ -44,23 +45,56 @@ namespace Client_GUI
             bool connected; // Are we connected?
             client = new Client(); // Get Client object
             server = "127.0.0.1";
+            username = "Meow";
             port = 13000;
+            
             
             /* Client, statusbar, backgroundworker and GUI setup */
             // TODO: Split into seperate functions
-            frmMain.Title = "MaChe Messenger - Client [ALPHA]";
-            txtMsgBox.AppendText("Welcome to MaChe Messenger v" + version + "\r");
+            frmMain.Title = "MaChe Messenger";
+            txtMsgBox.AppendText("Welcome to MaChe Messenger\r");
             txtMsgBox.AppendText("Send 'q' to quit.\n");
 
             connected = client.Connect(server); // Connect to server
 
-            UpdateStatusBar(connected);
+            if (Properties.Settings.Default.SearchType == "MANUAL")
+            {
+                // (connecting/macro.) ManualConnect();
+            }
+            else
+            {
+                // (connecting/macro.) AutoConnect();
+            }
+
+            if (!Properties.Settings.Default.RememberSettings)
+            {
+                // Show popup
+            }
+
+            ConnectPopup popup = new ConnectPopup();
+            popup.ShowDialog();
+
+            UpdateStatusBar(client.isConnected);
             lblServerAddr.Text = "Server: " + server + ":" + port;
             
             listeningWorker.DoWork += listeningWorker_DoWork; // Assign do work function
 
             // If connected, start listening for server response
-            if (connected)
+            if (client.isConnected)
+                listeningWorker.RunWorkerAsync();
+        }
+
+        private void ConnectionPopup() // Connection popup code
+        {
+            ConnectPopup popup = new ConnectPopup();
+            popup.ShowDialog();
+
+            client.Connect(popup.txtServerAddr.Text, popup.txtUsername.Text, Convert.ToInt32(popup.txtServerPort.Text)); // Connect to server
+
+            UpdateStatusBar(client.isConnected);
+            lblServerAddr.Text = "Server: " + client.hostAddr + ":" + client.hostPort;
+
+            if (client.isConnected)
                 listeningWorker.RunWorkerAsync();
         }
 
@@ -69,7 +103,6 @@ namespace Client_GUI
             if (txtUserBox.Text == "q") // Quit flag
             {
                 // Send quit string
-                client.SendMessage(":IQUIT:");
                 client.Disconnect();
                 Environment.Exit(0);
             }
@@ -85,20 +118,20 @@ namespace Client_GUI
         {
             if (connected)
             {
-                lblConnectStatus.Text = "    CONNECTED    ";
-                lblConnectStatus.Background = Brushes.DarkGreen;
+                lblConnectStatus.Text = "CONNECTED";
+                barItemConnectStatus.Background = Brushes.DarkGreen;
             }
             else
             {
-                lblConnectStatus.Text = " DISCONNECTED ";
-                lblConnectStatus.Background = Brushes.DarkRed;
+                lblConnectStatus.Text = "DISCONNECTED";
+                barItemConnectStatus.Background = Brushes.DarkRed;
             }
         }
 
         /* Background worker */
 
         void listeningWorker_DoWork(object sender, DoWorkEventArgs e)
-        {// Move to function
+        {
             // Listen for response from server
             var stream = client.ServerStream;
 
@@ -114,7 +147,15 @@ namespace Client_GUI
             }
             catch (IOException) { }
             catch (Exception) { }
-            //throw new NotImplementedException();
+            finally
+            {
+                try
+                {
+                    Dispatcher.Invoke(new Action(() => { this.UpdateStatusBar(client.Disconnect()); })); // Safely dc and Update GUI
+                }
+                catch (TaskCanceledException) { }
+            }
+
         }
 
         /* Event Handlers */
@@ -128,10 +169,7 @@ namespace Client_GUI
 
         private void btnSend_Click(object sender, RoutedEventArgs e)
         {
-            //SendMessage();
-            
-            ConnectPopup popup = new ConnectPopup();
-            popup.ShowDialog();
+            SendMessage();
         }
 
         private void txtUser_KeyDown(object sender, KeyEventArgs e)
@@ -154,6 +192,53 @@ namespace Client_GUI
         {
             // Update status bar
             lblMsgLength.Text = "Len: " + txtUserBox.Text.Length + "/400";
+        }
+
+        private void MenuBar_Connection_New_Click(object sender, RoutedEventArgs e)
+        {
+            ConnectPopup popup = new ConnectPopup();
+
+            client.Disconnect();
+
+            popup.ShowDialog();
+
+            client.Connect(popup.txtServerAddr.Text, popup.txtUsername.Text, Convert.ToInt32(popup.txtServerPort.Text)); // Connect to server
+
+            UpdateStatusBar(client.isConnected);
+            lblServerAddr.Text = "Server: " + client.hostAddr + ":" + client.hostPort;
+
+            if (client.isConnected)
+            {
+                listeningWorker.RunWorkerAsync();
+                txtMsgBox.AppendText("\rConnected to chat server.\n");
+            }
+            else
+            {
+                txtMsgBox.AppendText("\rCould not find server at this address.\n");
+            }
+        }
+
+        private void MenuBar_Connection_Reconnect_Click(object sender, RoutedEventArgs e)
+        {
+            txtMsgBox.AppendText("\rAttempting to reconnect to chat server...");
+            client.Disconnect();
+            client.Connect(client.hostAddr, client.username, client.hostPort);
+            UpdateStatusBar(client.isConnected); // Try to connect again
+
+            if (client.isConnected)
+            {
+                txtMsgBox.AppendText("\rConnected to chat server.\n");
+                listeningWorker.RunWorkerAsync();
+            }
+            else
+            {
+                txtMsgBox.AppendText("\rAttempt failed, please try again later.\n");
+            }
+        }
+
+        private void MenuBar_About_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("MaChe Messenger - Client [ALPHA]\nVersion " + version + "\nWritten by Matthew Carney =^-^=\n[matthewcarney64@gmail.com]", "About", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
     }

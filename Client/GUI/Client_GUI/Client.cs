@@ -13,22 +13,29 @@ using System.IO;
 namespace Client_GUI
 {
     /// <summary>
-    /// Client Utility Class
+    /// Client Class
     /// Contains basic client functionality and methods
     /// Optimised for connecting to MaChe server
     /// </summary>
     class Client
     {
+        // Client attributes
+        private const string QUIT_STRING = ":IQUIT:"; // String to safely DC from server
         private static NetworkStream stream; // stream used to read and write data to server
         private static TcpClient client; // Stores client info when connected to server
-        public NetworkStream ServerStream { get {return stream; } } // Server stream getter
+        private bool connected = false;
+        private string serverAddr;
+        private Int32 serverPort;
+        private string name;
 
-        // Connection attributes
-        private string serverAddr { get; set; }
-        private Int32 serverPort { get; set; }
-        private string name { get; set; }
-        private bool connected { get; set; }
+        // Getters
+        public NetworkStream ServerStream { get { return stream; } }
+        public bool isConnected { get { return connected; } }
+        public string hostAddr { get { return serverAddr; } }
+        public Int32 hostPort { get { return serverPort; } }
+        public string username { get { return name; } }
 
+        
         public Client() { } // Constructor
 
         public bool Connect(String server, string username = "GUI_USER", Int32 port = 13000) // Connect to messaging server 
@@ -41,7 +48,7 @@ namespace Client_GUI
 
             try
             {
-                TcpClient client = new TcpClient(server, port); // Connect to server on stated port and address
+                client = new TcpClient(server, port); // Connect to server on stated port and address
                 stream = client.GetStream(); // Get stream to communicate with
 
                 this.SendInitialData(username); // Send username to server
@@ -63,52 +70,32 @@ namespace Client_GUI
             SendMessage("'#INITIALDATA#':" + username + ":"); 
         }
 
-        public string SendMessage(string message) // Send string message to server
+        public void SendMessage(string message) // Send string message to server
         {
-            string strReturn = null; // Return string
-
             try
             {
                 Byte[] buffer = new Byte[4096]; // Message buffer
                 buffer = System.Text.Encoding.ASCII.GetBytes(message); // Convert ascii string to bytes
                 stream.Write(buffer, 0, buffer.Length); // Send message to server
-
-                strReturn = "[me] " + message;
             }
-            catch (Exception e)
-            {
-                strReturn = "Error sending message\n" + e;
-            }
-
-            return strReturn;
-
-            //catch (SocketException e)
-            //{
-            //    strReturn = "Error sending message\n" + e;
-            //}
-            //catch (IOException e)
-            //{
-                
-            //}
+            catch (Exception) { }
         }
 
-        public string Disconnect() // Disconnect from messaging server
+        public bool Disconnect() // Disconnect from messaging server
         {
-            string strReturn = null;
-
             try
             {
+                SendMessage(QUIT_STRING);
                 stream.Close();
                 client.Close();
             }
             catch (NullReferenceException) { }
             finally
             {
-                strReturn = "Connection closed.";
                 connected = false;
             }
 
-            return strReturn;
+            return connected;
         }
     }
 }

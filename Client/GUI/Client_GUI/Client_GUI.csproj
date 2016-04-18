@@ -69,6 +69,7 @@
     <Compile Include="ConnectPopup.xaml.cs">
       <DependentUpon>ConnectPopup.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Macros.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

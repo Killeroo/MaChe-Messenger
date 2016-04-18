@@ -45,3 +45,6 @@ C:\SideProjects\MaChe Master\Client\GUI\Client_GUI\obj\Debug\Client_GUI.Properti
 C:\SideProjects\MaChe Master\Client\GUI\Client_GUI\obj\Debug\Client_GUI.csproj.GenerateResource.Cache
 C:\SideProjects\MaChe Master\Client\GUI\Client_GUI\obj\Debug\ConnectPopup.baml
 C:\SideProjects\MaChe Master\Client\GUI\Client_GUI\obj\Debug\ConnectPopup.g.cs
+C:\SideProjects\MaChe Master\Client\GUI\Client_GUI\obj\Debug\GeneratedInternalTypeHelper.g.cs
+C:\SideProjects\MaChe Master\Client\GUI\Client_GUI\obj\Debug\Client_GUI_MarkupCompile.lref
+C:\SideProjects\MaChe Master\Client\GUI\Client_GUI\obj\Debug\App.baml
