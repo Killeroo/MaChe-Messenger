@@ -52,11 +52,14 @@ namespace Client_GUI
         private void btnConnect_Click(object sender, RoutedEventArgs e)
         {
             // Save user settings
-            Properties.Settings.Default.Username = txtUsername.Text;
-            Properties.Settings.Default.ServerAddr = txtServerAddr.Text;
-            Properties.Settings.Default.ServerPort = txtServerPort.Text;
-            Properties.Settings.Default.RememberSettings = (bool) chkRemSettings.IsChecked;
-            Properties.Settings.Default.Save();
+            if ((bool) chkRemSettings.IsChecked)
+            {
+                Properties.Settings.Default.Username = txtUsername.Text;
+                Properties.Settings.Default.ServerAddr = txtServerAddr.Text;
+                Properties.Settings.Default.ServerPort = txtServerPort.Text;
+                Properties.Settings.Default.RememberSettings = (bool)chkRemSettings.IsChecked;
+                Properties.Settings.Default.Save();
+            }
 
             this.Close();
         }

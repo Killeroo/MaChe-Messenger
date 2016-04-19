@@ -9,7 +9,7 @@ namespace Client_GUI
     // Utility class with useful and commonly used static macros
     class Macros
     {
-        public static void FindLANServer() 
+        public static void AutoFindServer() 
         {
 
         }

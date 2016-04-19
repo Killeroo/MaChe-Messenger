@@ -32,77 +32,71 @@ namespace Client_GUI
         // Local Variable Declaration
         private static string version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
         private readonly BackgroundWorker listeningWorker = new BackgroundWorker(); // Background worker for getting server messages
-        Client client; // Client Object (communication etc)
-        String server; // Server Address
-        String username;
-        Int32 port; // Server Port
+        Client client = new Client(); // Client Object (communication etc)
 
         public MainWindow()
         {
             InitializeComponent();
 
             // Local Var setup
-            bool connected; // Are we connected?
             client = new Client(); // Get Client object
-            server = "127.0.0.1";
-            username = "Meow";
-            port = 13000;
-            
-            
+
+            listeningWorker.DoWork += listeningWorker_DoWork; // Assign do work function
+
             /* Client, statusbar, backgroundworker and GUI setup */
-            // TODO: Split into seperate functions
             frmMain.Title = "MaChe Messenger";
             txtMsgBox.AppendText("Welcome to MaChe Messenger\r");
             txtMsgBox.AppendText("Send 'q' to quit.\n");
 
-            connected = client.Connect(server); // Connect to server
+            if (!Properties.Settings.Default.RememberSettings)
+            {
+                // Show popup
+                ConnectionPopup();
+            }
 
             if (Properties.Settings.Default.SearchType == "MANUAL")
             {
-                // (connecting/macro.) ManualConnect();
+                // Initial Connection
+                StartConnection(Properties.Settings.Default.ServerAddr, Properties.Settings.Default.Username, Convert.ToInt32(Properties.Settings.Default.ServerPort)); // Connect to server
             }
             else
             {
                 // (connecting/macro.) AutoConnect();
+                Macros.AutoFindServer();
             }
-
-            if (!Properties.Settings.Default.RememberSettings)
-            {
-                // Show popup
-            }
-
-            ConnectPopup popup = new ConnectPopup();
-            popup.ShowDialog();
-
-            UpdateStatusBar(client.isConnected);
-            lblServerAddr.Text = "Server: " + server + ":" + port;
             
-            listeningWorker.DoWork += listeningWorker_DoWork; // Assign do work function
+        }
 
-            // If connected, start listening for server response
+        private void StartConnection(String serverAddr, String clientUsername, Int32 serverPort) // Connection procedure
+        {
+            if (client.isConnected)
+                client.Disconnect();
+            client.Connect(serverAddr, clientUsername, serverPort);
+            UpdateStatusBar(client.isConnected);
+            lblServerAddr.Text = "Server: " + client.hostAddr + ":" + client.hostPort;
             if (client.isConnected)
                 listeningWorker.RunWorkerAsync();
-        }
+        } 
 
         private void ConnectionPopup() // Connection popup code
         {
             ConnectPopup popup = new ConnectPopup();
             popup.ShowDialog();
 
-            client.Connect(popup.txtServerAddr.Text, popup.txtUsername.Text, Convert.ToInt32(popup.txtServerPort.Text)); // Connect to server
+            //client.Connect(popup.txtServerAddr.Text, popup.txtUsername.Text, Convert.ToInt32(popup.txtServerPort.Text)); // Connect to server
 
-            UpdateStatusBar(client.isConnected);
-            lblServerAddr.Text = "Server: " + client.hostAddr + ":" + client.hostPort;
+            //UpdateStatusBar(client.isConnected);
+            //lblServerAddr.Text = "Server: " + client.hostAddr + ":" + client.hostPort;
 
-            if (client.isConnected)
-                listeningWorker.RunWorkerAsync();
+            //// If connected, start listening for server response
+            //if (client.isConnected)
+            //    listeningWorker.RunWorkerAsync();
         }
 
         private void SendMessage() // Common send message event code 
         {
             if (txtUserBox.Text == "q") // Quit flag
             {
-                // Send quit string
                 client.Disconnect();
                 Environment.Exit(0);
             }
@@ -239,6 +233,11 @@ namespace Client_GUI
         private void MenuBar_About_Click(object sender, RoutedEventArgs e)
         {
             MessageBox.Show("MaChe Messenger - Client [ALPHA]\nVersion " + version + "\nWritten by Matthew Carney =^-^=\n[matthewcarney64@gmail.com]", "About", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void MenuBar_Exit_Click(object sender, RoutedEventArgs e)
+        {
+            Environment.Exit(0);
         }
 
     }
