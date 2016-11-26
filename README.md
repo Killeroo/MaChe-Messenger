@@ -1,16 +1,20 @@
-MaChe Messenger (Alpha)
+MaChe Messenger
 
-MaChe Messenger is a client server messaging application written in C#(CSharp). It is an easy-setup programming, designed to allows quick and easy messaging over a local network;
-At the master branch text messages can be sent, but sending and drawing of images will be introduced soon.
+MaChe is a small simple messenging application written in C#. it is designed to send text and images (drawn and written within the client ) to other clients on a LAN network.
 
-#######################################
-MaChe Messenger is in a ALPHA STATE
-#######################################
-- Core part of the app are being worked on and worded
-- I am working to get the basic functionality and communication of the app working
-- Please bear with and feel free ask if you want to help :)
+All that is required is MaChe server running on the network then multiple clients can connect and chat.
 
-Prerequisites
-All that is required is a MaChe server running somewhere on the network, then clients can connect at will and begin messaging instantly!
+The project is currently in early development but some core functionality has been implemented.
 
-=^-^=
+As of the current build the following has been implemented:
+- Text chat between clients 
+- Clients can safetly connect and disconnect from server
+
+Following to be added in branch next merge:
+- Paint style drawing functionality added within client
+- Options for connecting client to server (has to be done manually atm)
+- Images can be sent between clients
+
+Future features:
+- Auto finding server option for clients
+- Username creation for clients
