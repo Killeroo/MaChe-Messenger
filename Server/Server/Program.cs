@@ -1,6 +1,6 @@
 ﻿/*****************************************************************************/
 /*                                                                           */
-/* Program Title : MaChe Messaging Server                     Version : 0.21 */
+/* Program Title : MaChe Messaging Server                     Version : 0.30 */
 /*                                                                           */
 /*****************************************************************************/
 /*                                                                           */
@@ -17,7 +17,7 @@
 /* Matthew Carney      0.21       Rewrote server logging, added     24/03/16 */
 /*                                usernames and rudermentary client          */
 /*                                server handshake.                          */
-/* Matthew Carney      0.20       Switched from blocking call to    22/03/16 */
+/* Matthew Carney      0.20       Switche from blocking call to    22/03/16 */
 /*                                asynchronous                               */
 /* Matthew Carney      0.10       Initial version                   21/03/16 */
 /*                                                                           */
@@ -40,6 +40,8 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+
+using System.Drawing;
 
 namespace Server
 {
@@ -132,12 +134,20 @@ namespace Server
                         var clientString = System.Text.Encoding.UTF8.GetString(buffer, 0, clientByteCount); // Convert raw client data from bytes to a string
                         if (clientString == ":IQUIT:") // Check for 'end-connection' string
                             break;
+                        else if (clientString == ":IMAGE:") // Check if client is going to send an image 
+                        {
+                            /* Send image to all clients */
+                            await SendClientsMsgAsync(":IMAGE:"); // Tell clients an image is being sent
+                            await SendClientsImgAsync(RecieveClientImage(networkStream), username); // Send image
+                        }
                         else
+                        {
+                            /* Send out message to all clients */
                             LogMessage(clientString, username, "Message");
-
-                        /* Send out message to all clients */
-                        var sendAllTask = SendClientsMsgAsync(clientString, username);
-                        await sendAllTask;
+                            await SendClientsMsgAsync(clientString, username);
+                            //var sendAllTask = SendClientsMsgAsync(clientString, username);
+                            //await sendAllTask;
+                        }
                     }
 
                     LogMessage("Disconnected from " + username + ".");
@@ -178,7 +188,32 @@ namespace Server
             }
         } // Broadcasts messages to all connected clients
 
-        static void LogMessage(string message, string header = "Server", string status = "", bool newLine = true)
+        private async Task SendClientsImgAsync(MemoryStream imageMemStream, string username)
+        {
+            Byte[] buffer = new Byte[4096];
+            buffer = imageMemStream.ToArray(); // Convert image memstream to buffer
+
+            foreach (var client in conns)
+            {
+                var stream = client.GetStream();
+                
+                await stream.WriteAsync(buffer, 0, buffer.Length); // Write byte array to stream
+            }
+        } // Broadcasts images to all connected clients
+
+
+        //change to async
+        private static MemoryStream RecieveClientImage(NetworkStream stream) // Recieve image being sent by client
+        {
+            Byte[] buffer = new Byte[4096];
+
+            var imageByteCount = stream.Read(buffer, 0, buffer.Length); // Read image Byte array
+            var imageMemStream = new MemoryStream(buffer); // Store in memory stream
+
+            return imageMemStream; // Return memory stream to be processed further
+        }
+
+        private static void LogMessage(string message, string header = "Server", string status = "", bool newLine = true)
         {
             ConsoleColor color; ; // Default colour
             string statusMsg = null;

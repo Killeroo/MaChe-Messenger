@@ -8,7 +8,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.IO;
 
-// TODO: Remove string returns change to bools
+using System.Drawing;
 
 namespace Client_GUI
 {
@@ -81,7 +81,12 @@ namespace Client_GUI
             catch (Exception) { }
         }
 
-        public bool Disconnect() // Disconnect from messaging server
+        public void SendImage(Image img)
+        {
+            // TODO: add_drawing
+        }
+
+        public string Disconnect() // Disconnect from messaging server
         {
             try
             {

@@ -27,7 +27,43 @@
                 <Paragraph/>
             </FlowDocument>
         </RichTextBox>
-
+        <TabControl x:Name="inputTabControl" HorizontalAlignment="Left" Height="314" Margin="10,208,0,0" VerticalAlignment="Top" Width="328" SelectionChanged="inputTabControl_SelectionChanged">
+            <TabItem x:Name="textTab" Header="Text">
+                <Grid Background="#FFE5E5E5">
+                    <TextBox x:Name="txtUserBox" HorizontalAlignment="Left" Height="58" Margin="6,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="250" KeyDown="txtUser_KeyDown"/>
+                    <Button x:Name="btnSend" Content="Send" HorizontalAlignment="Left" Height="58" Margin="261,10,0,0" VerticalAlignment="Top" Width="47" Click="btnSend_Click"/>
+                </Grid>
+            </TabItem>
+            <TabItem x:Name="drawingTab" Header="Drawing">
+                <Grid>
+                    <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Left" Height="236" Margin="10,10,0,0" VerticalAlignment="Top" Width="239">
+                        <Canvas x:Name="drawingCanvas" MouseDown="drawingCanvas_MouseDown" MouseMove="drawingCanvas_MouseMove" Cursor="Pen" Margin="2">
+                            <Canvas.Background>
+                                <SolidColorBrush Color="White" Opacity="0" />
+                            </Canvas.Background>
+                        </Canvas>
+                    </Border>
+                    <Button Name="btnCanvasSend" Content="Send" HorizontalAlignment="Left" Height="21" Margin="10,251,0,0" VerticalAlignment="Top" Width="67" Click="btnCanvasSend_Click"/>
+                    <Button Name="btnCanvasClear" Content="Clear" HorizontalAlignment="Left" Height="21" Margin="82,251,0,0" VerticalAlignment="Top" Width="67" Click="btnCanvasClear_Click"/>
+                    <Button Name="btnPenThickness_1" HorizontalAlignment="Left" Margin="259,167,0,0" VerticalAlignment="Top" Width="21" Click="btnPenThickness_1_Click">
+                        <Image Source="Resources\Pen_Thickness_1.png" Width="16" Height="16" Margin="0,0,0,0"/>
+                    </Button>
+                    <Button Name="btnPenThickness_2" HorizontalAlignment="Left" Margin="259,194,0,0" VerticalAlignment="Top" Width="21" Click="btnPenThickness_2_Click">
+                        <Image Source="Resources\Pen_Thickness_2.png" Width="16" Height="16" Margin="0,0,0,0"/>
+                    </Button>
+                    <Button Name="btnPenThickness_3" HorizontalAlignment="Left" Margin="259,221,0,0" VerticalAlignment="Top" Width="21" Click="btnPenThickness_3_Click">
+                        <Image Source="Resources\Pen_Thickness_3.png" Width="16" Height="16" Margin="0,0,0,0"/>
+                    </Button>
+                    <Button Name="btnEraser" Content="Eraser" HorizontalAlignment="Left" Margin="254,39,0,0" VerticalAlignment="Top" Width="54" Height="21" Click="btnEraser_Click"/>
+                    <Button Name="btnPen" Content="Pen" HorizontalAlignment="Left" Margin="254,12,0,0" VerticalAlignment="Top" Width="54" Click="btnPen_Click"/>
+                    <Button Name="btnPenColour_Black" Background="Black" Content="" HorizontalAlignment="Left" Margin="259,75,0,0" VerticalAlignment="Top" Width="21" Click="btnPenColour_Black_Click"/>
+                    <Button Name="btnPenColour_Red" Background="Red" Content="" HorizontalAlignment="Left" Margin="259,102,0,0" VerticalAlignment="Top" Width="21" Click="btnPenColour_Red_Click"/>
+                    <Button Name="btnPenColour_Green" Background="Green" Content="" HorizontalAlignment="Left" Margin="285,102,0,0" VerticalAlignment="Top" Width="21" Click="btnPenColour_Green_Click"/>
+                    <Button Name="btnPenColour_Blue" Background="Blue" Content="" HorizontalAlignment="Left" Margin="259,129,0,0" VerticalAlignment="Top" Width="21" Click="btnPenColour_Blue_Click"/>
+                    <Button Name="btnPenColour_Custom" Content="" HorizontalAlignment="Left" Margin="285,75,0,0" VerticalAlignment="Top" Width="21" Click="btnPenColour_Custom_Click"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
         <CheckBox x:Name="chkEnter" Content="Press 'enter' to send" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="214,0,0,85" IsChecked="True"/>
         <TextBox x:Name="txtUserBox" HorizontalAlignment="Left" VerticalAlignment="Bottom" Height="58" Margin="10,0,0,25" TextWrapping="Wrap" Width="265" KeyDown="txtUser_KeyDown" TextChanged="txtUserBox_TextChanged"/>
         <Button x:Name="btnSend" Content="Send" HorizontalAlignment="Left" VerticalAlignment="Bottom" Height="58" Margin="280,0,0,25" Width="58" Click="btnSend_Click"/>
