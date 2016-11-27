@@ -21,10 +21,6 @@ using System.IO;
 
 using System.Drawing.Imaging;
 
-//using System.Drawing;
-
-// TODO: Auto search functionality for server
-
 namespace Client_GUI
 {
     /// <summary>
@@ -100,12 +96,6 @@ namespace Client_GUI
             //    listeningWorker.RunWorkerAsync();
         }
 
-        // Get rid of
-        public void SetMsgBoxText(string text) 
-        {
-            Dispatcher.Invoke(new Action(() => { txtMsgBox.AppendText(text + "\r"); })); // Access the message box using controls dispatcher for safe multi thread access
-        } // Threadsafe setting of text in txtMsgBox
-
         private void SendTextMessage() // Common send message event code 
         {
             if (txtUserBox.Text == "q") // Quit flag
@@ -169,7 +159,7 @@ namespace Client_GUI
                             img.Width = 120;
 
                             Paragraph para = new Paragraph();
-                            para.Inlines.Add(img);
+                            para.Inlines.Add((System.Windows.Controls.Image)img);
 
                             // Display using dispather
                             Dispatcher.Invoke(new Action(() => { txtMsgBox.Document.Blocks.Add(para); })); // Access the message box using controls dispatcher for safe multi thread access
@@ -325,7 +315,7 @@ namespace Client_GUI
         }
         private void btnCanvasSend_Click(object sender, RoutedEventArgs e)
         {
-            /* Save .png of Canvas */
+            // Save png object of Canvas
             Rect canvasRect = new Rect(drawingCanvas.RenderSize); // Rectangle size of canvas (placeholder)
             RenderTargetBitmap canvasBitmapRender = new RenderTargetBitmap((int)canvasRect.Right, // Convert canvas to bitmap
                                                                            (int)canvasRect.Bottom,
@@ -334,15 +324,16 @@ namespace Client_GUI
             BitmapEncoder pngEncoder = new PngBitmapEncoder(); // Encode from Bitmap to png
             pngEncoder.Frames.Add(BitmapFrame.Create(canvasBitmapRender));
 
-            // TODO: replace with using
-            System.IO.MemoryStream memStream = new System.IO.MemoryStream(); // Save to memory stream
+            //System.IO.MemoryStream memStream = new System.IO.MemoryStream(); // Save to memory stream
 
-            // Save Image
-            // TODO: remove saving file, use memory stream to send file directly
-            pngEncoder.Save(memStream);
-            memStream.Close();
-            System.IO.File.WriteAllBytes("test.png", memStream.ToArray()); // Write out to file in exe dir
-
+            // Send png to server 
+            using (System.IO.MemoryStream memStream = new System.IO.MemoryStream()) 
+            {
+                pngEncoder.Save(memStream);
+                client.SendMessage(":IMAGE:");
+                txtMsgBox.AppendText(client.SendImage(memStream));
+            }
+            
         }
         private void btnCanvasClear_Click(object sender, RoutedEventArgs e)
         {

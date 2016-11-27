@@ -1,6 +1,6 @@
 ﻿/*****************************************************************************/
 /*                                                                           */
-/* Program Title : MaChe Messaging Server                     Version : 0.30 */
+/* Program Title : MaChe Messaging Server                     Version : 0.40 */
 /*                                                                           */
 /*****************************************************************************/
 /*                                                                           */
@@ -11,6 +11,7 @@
 /*****************************************************************************/
 /* Author             Version     Comments                          Date     */
 /*****************************************************************************/
+/* Matthew Carney      0.40       Added simple image handling protocols      */
 /*                                                                           */
 /* Matthew Carney      0.30       Added client message broadcast             */
 /*                                to all other clients                       */
@@ -91,7 +92,7 @@ namespace Server
             }
             catch (Exception e)
             {
-                LogMessage(e.Message.ToString(),"","Error");
+                LogMessage(e.Message.ToString() + "\n" + e.StackTrace.ToString(), "", "Error");
             }
             finally
             {
@@ -254,7 +255,7 @@ namespace Server
             if (header != "")
                 Console.Write("[{0}] ", header);
             if (statusMsg != "")
-                Console.Write("[{0}] - ", statusMsg);
+                Console.Write("[{0}] ", statusMsg);
             Console.Write(message + "{0}", newLine ? "\n" : "");
 
             // Reset console colour

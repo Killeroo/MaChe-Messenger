@@ -15,7 +15,6 @@ namespace Client_GUI
     /// <summary>
     /// Client Class
     /// Contains basic client functionality and methods
-    /// Optimised for connecting to MaChe server
     /// </summary>
     class Client
     {
@@ -81,9 +80,26 @@ namespace Client_GUI
             catch (Exception) { }
         }
 
-        public void SendImage(Image img)
+        public string SendImage(MemoryStream imgMemStream)
         {
             // TODO: add_drawing
+            string strReturn = null;
+
+            try
+            {
+                Byte[] buffer = new Byte[4096];
+                buffer = imgMemStream.ToArray();
+                stream.Write(buffer, 0, buffer.Length);
+
+                strReturn = "[me]\n";
+
+            }
+            catch (Exception e)
+            {
+                strReturn = "Error sending message\n" + e;
+            }
+
+            return strReturn;
         }
 
         public bool Disconnect()//string Disconnect() // Disconnect from messaging server
