@@ -35,8 +35,8 @@ namespace Client_GUI
 
         // Local Variable Declaration
         private static string version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
-        private readonly BackgroundWorker listeningWorker = new BackgroundWorker(); // Background worker for getting server messages
-        Client client = new Client(); // Client Object (communication etc)
+        private readonly BackgroundWorker listeningWorker = new BackgroundWorker(); // Background thread for handling server messages
+        Client client = new Client(); // Client Object
         String server; // Server Address
         Int32 port; // Server Port
 
@@ -62,21 +62,15 @@ namespace Client_GUI
             txtMsgBox.AppendText("Send 'q' to quit.\n");
 
             if (!Properties.Settings.Default.RememberSettings)
-            {
                 // Show popup
                 ConnectionPopup();
-            }
 
             if (Properties.Settings.Default.SearchType == "MANUAL")
-            {
                 // Initial Connection
                 StartConnection(Properties.Settings.Default.ServerAddr, Properties.Settings.Default.Username, Convert.ToInt32(Properties.Settings.Default.ServerPort)); // Connect to server
-            }
             else
-            {
                 // (connecting/macro.) AutoConnect();
                 Macros.AutoFindServer();
-            }
             
         }
 
@@ -125,7 +119,8 @@ namespace Client_GUI
             }
 
             txtUserBox.Clear();
-        }/
+        }
+
         private void FindServer() // Searches on LAN for server
         {
             
@@ -145,8 +140,7 @@ namespace Client_GUI
             }
         }
 
-        /* Background worker */
-
+        // Background connection thread
         void listeningWorker_DoWork(object sender, DoWorkEventArgs e)
         {
 
@@ -190,22 +184,20 @@ namespace Client_GUI
                 }
                 catch (IOException) { }
                 catch (Exception) { }
-            }
-            catch (IOException) { }
-            catch (Exception) { }
-            finally
-            {
-                try
+                finally
                 {
-                    Dispatcher.Invoke(new Action(() => { this.UpdateStatusBar(client.Disconnect()); })); // Safely dc and Update GUI
+                    try
+                    {
+                        Dispatcher.Invoke(new Action(() => { this.UpdateStatusBar(client.Disconnect()); })); // Safely dc and Update GUI
+                    }
+                    catch (TaskCanceledException) { }
                 }
-                catch (TaskCanceledException) { }
             }
-
+            
         }
 
 
-        /* Event Handlers */
+        #region Event handlers
 
         private void MainWindow_Closing(object sender, CancelEventArgs e)
         {
@@ -217,27 +209,79 @@ namespace Client_GUI
         {
             txtMsgBox.ScrollToEnd();
         }
+        private void txtUserBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            // Update status bar
+            lblMsgLength.Text = "Len: " + txtUserBox.Text.Length + "/400";
+        }
         private void inputTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             var inputTabControl = sender as TabControl;
             var selectedTab = inputTabControl.SelectedItem as TabItem;
-            if (selectedTab.Header.ToString() == "Drawing")
+            if (selectedTab.Header.ToString() == "Drawing") // Drawing tab
             {
-                // Extend window for drawingpad
                 frmMain.Height += 200;
                 inputTabControl.Height += 207;
             }
-            else if (frmMain.Height != 362)
+            else if (frmMain.Height != 362) // text input tab
             {
-                // Retract window when not default form size
-                frmMain.Height -= 200;
-                inputTabControl.Height -= 207;
+                frmMain.Height = 394;
+                inputTabControl.Height = 122;
             }
 
+        }
 
-        } // Tab Changing even
+        // Menu bar events
+        private void MenuBar_Connection_New_Click(object sender, RoutedEventArgs e)
+        {
+            ConnectPopup popup = new ConnectPopup();
 
-        // Tab 'Text' Events
+            client.Disconnect();
+
+            popup.ShowDialog();
+
+            client.Connect(popup.txtServerAddr.Text, popup.txtUsername.Text, Convert.ToInt32(popup.txtServerPort.Text)); // Connect to server
+
+            UpdateStatusBar(client.isConnected);
+            lblServerAddr.Text = "Server: " + client.hostAddr + ":" + client.hostPort;
+
+            if (client.isConnected)
+            {
+                listeningWorker.RunWorkerAsync();
+                txtMsgBox.AppendText("\rConnected to chat server.\n");
+            }
+            else
+            {
+                txtMsgBox.AppendText("\rCould not find server at this address.\n");
+            }
+        }
+        private void MenuBar_Connection_Reconnect_Click(object sender, RoutedEventArgs e)
+        {
+            txtMsgBox.AppendText("\rAttempting to reconnect to chat server...");
+            client.Disconnect();
+            client.Connect(client.hostAddr, client.username, client.hostPort);
+            UpdateStatusBar(client.isConnected); // Try to connect again
+
+            if (client.isConnected)
+            {
+                txtMsgBox.AppendText("\rConnected to chat server.\n");
+                listeningWorker.RunWorkerAsync();
+            }
+            else
+            {
+                txtMsgBox.AppendText("\rAttempt failed, please try again later.\n");
+            }
+        }
+        private void MenuBar_About_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("MaChe Messenger - Client [ALPHA]\nVersion " + version + "\nWritten by Matthew Carney =^-^=\n[matthewcarney64@gmail.com]", "About", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        private void MenuBar_Exit_Click(object sender, RoutedEventArgs e)
+        {
+            Environment.Exit(0);
+        }
+
+        // Text input events
         private void btnSend_Click(object sender, RoutedEventArgs e)
         {
             SendTextMessage();
@@ -253,7 +297,7 @@ namespace Client_GUI
             }
         }
 
-        // Tab 'Drawing' Events
+        // Drawing input events
         private void drawingCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ButtonState == MouseButtonState.Pressed) 
@@ -361,13 +405,8 @@ namespace Client_GUI
             txtMsgBox.Document.Blocks.Add(para);
         }
 
-        //private static Byte[] ImageToByteArray(System.Drawing.Image image) // Convert Image object to byte array
-        //{
-        //    using (var memStream = new MemoryStream())
-        //    {
-        //        image.Save(memStream, System.Drawing.Imaging.ImageFormat.Png);
-        //        return memStream.ToArray();
-        //    }
-        //}
+
+        #endregion
+
     }
 }

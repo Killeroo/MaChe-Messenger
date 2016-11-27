@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Name="frmMain" x:Class="Client_GUI.MainWindow"
-        Title="MainWindow" Height="375" Width="362"
+        Title="MainWindow" Height="394" Width="362"
         ResizeMode="NoResize" Closing="MainWindow_Closing">
     <Grid>
         <Menu DockPanel.Dock="Top">
@@ -27,11 +27,12 @@
                 <Paragraph/>
             </FlowDocument>
         </RichTextBox>
-        <TabControl x:Name="inputTabControl" HorizontalAlignment="Left" Height="314" Margin="10,208,0,0" VerticalAlignment="Top" Width="328" SelectionChanged="inputTabControl_SelectionChanged">
+        <TabControl x:Name="inputTabControl" HorizontalAlignment="Left" Height="122" Margin="10,208,0,0" VerticalAlignment="Top" Width="328"> <!-- SelectionChanged="inputTabControl_SelectionChanged"> -->
             <TabItem x:Name="textTab" Header="Text">
                 <Grid Background="#FFE5E5E5">
-                    <TextBox x:Name="txtUserBox" HorizontalAlignment="Left" Height="58" Margin="6,10,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="250" KeyDown="txtUser_KeyDown"/>
-                    <Button x:Name="btnSend" Content="Send" HorizontalAlignment="Left" Height="58" Margin="261,10,0,0" VerticalAlignment="Top" Width="47" Click="btnSend_Click"/>
+                    <TextBox x:Name="txtUserBox" HorizontalAlignment="Left" Height="58" Margin="10,26,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="250" KeyDown="txtUser_KeyDown"/>
+                    <Button x:Name="btnSend" Content="Send" HorizontalAlignment="Left" Height="58" Margin="265,26,0,0" VerticalAlignment="Top" Width="47" Click="btnSend_Click"/>
+                    <CheckBox x:Name="chkEnter" Content="Press 'enter' to send" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,73" IsChecked="True"/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="drawingTab" Header="Drawing">
@@ -64,11 +65,8 @@
                 </Grid>
             </TabItem>
         </TabControl>
-        <CheckBox x:Name="chkEnter" Content="Press 'enter' to send" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="214,0,0,85" IsChecked="True"/>
-        <TextBox x:Name="txtUserBox" HorizontalAlignment="Left" VerticalAlignment="Bottom" Height="58" Margin="10,0,0,25" TextWrapping="Wrap" Width="265" KeyDown="txtUser_KeyDown" TextChanged="txtUserBox_TextChanged"/>
-        <Button x:Name="btnSend" Content="Send" HorizontalAlignment="Left" VerticalAlignment="Bottom" Height="58" Margin="280,0,0,25" Width="58" Click="btnSend_Click"/>
 
-        <StatusBar Margin="0,315,0,0">
+        <StatusBar Margin="0,335,0,0">
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
                     <Grid>

@@ -86,7 +86,7 @@ namespace Client_GUI
             // TODO: add_drawing
         }
 
-        public string Disconnect() // Disconnect from messaging server
+        public bool Disconnect()//string Disconnect() // Disconnect from messaging server
         {
             try
             {
