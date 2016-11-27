@@ -1,0 +1,19 @@
+﻿<Window x:Class="Client_GUI.ConnectPopup"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="MaChe Messenger - Connect to server" Height="166" Width="299"
+        ResizeMode="NoResize">
+    <Grid>
+        <Label Content="Username" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,5,0,0"/>
+        <TextBox Name="txtUsername" HorizontalAlignment="Right" VerticalAlignment="Top" Height="23" Margin="0,8,10,0" TextWrapping="Wrap" Text="GUI_USER" Width="210"/>
+        <RadioButton x:Name="radioAuto" Content="Automatically search for MaChe Server" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,36,0,0" Checked="radioAuto_Checked"/>
+        <RadioButton x:Name="radioManual" Content="Manually connect" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="12,56,0,0" Checked="radioManual_Checked"/>
+        <Label Content="Server Address:" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="42,0,0,37" Height="23"/>
+        <TextBox Name="txtServerAddr" HorizontalAlignment="Left" VerticalAlignment="Bottom" TextAlignment="center" Height="19" Margin="131,0,0,37" TextWrapping="Wrap" Text="127.0.0.1" Width="92"/>
+        <Label Content=":" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="223,0,0,37" Height="23"/>
+        <TextBox Name="txtServerPort" HorizontalAlignment="Left" VerticalAlignment="Bottom"  TextAlignment="center" Height="19" Margin="236,0,0,37" TextWrapping="Wrap" Text="13000" Width="44"/>
+
+        <Button Name="btnConnect" Content="Connect" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,5,5" Width="75" Click="btnConnect_Click"/>
+        <CheckBox Name="chkRemSettings" Content="Remember selection" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,10" Width="137"/>
+    </Grid>
+</Window>
