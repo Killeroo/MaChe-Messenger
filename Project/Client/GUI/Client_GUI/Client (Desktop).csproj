@@ -60,6 +60,7 @@
     <Compile Include="ChangeUsername.xaml.cs">
       <DependentUpon>ChangeUsername.xaml</DependentUpon>
     </Compile>
+    <Compile Include="FlashWindowHelper.cs" />
     <Compile Include="Settings.xaml.cs">
       <DependentUpon>Settings.xaml</DependentUpon>
     </Compile>

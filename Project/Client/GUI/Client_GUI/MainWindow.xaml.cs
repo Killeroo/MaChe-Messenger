@@ -33,7 +33,9 @@ namespace Client_GUI
         private static string version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
         private readonly BackgroundWorker listeningWorker = new BackgroundWorker(); // Background thread for handling server messages
         Client client = new Client(); // Client Object
+        FlashWindowHelper flashHelper = new FlashWindowHelper(Application.Current); // Flash window object
 
+        // Draw variables
         Point currentCanvasPoint; // Current point mouse clicked on canvas
         Brush brushColour = SystemColors.WindowFrameBrush; // Colour of paint brush
         int brushThickness = 1; // Thickness of paint brush
@@ -96,6 +98,7 @@ namespace Client_GUI
                         var buffer = new byte[4096]; // Read buffer
                         var serverByteCount = stream.Read(buffer, 0, buffer.Length); // Get Bytes sent by server
                         var serverResponse = System.Text.Encoding.UTF8.GetString(buffer, 0, serverByteCount);
+                        Dispatcher.Invoke(new Action(() => { flashHelper.FlashApplicationWindow(); })); // Flash window when message from server is recieved
                         if (serverResponse == ":IMAGE:")
                         {
                             // If Image tag, listen for image
@@ -124,6 +127,7 @@ namespace Client_GUI
                     
                     }
                 }
+                // TODO: Change this to display exceptions
                 catch (IOException) { }
                 catch (Exception) { }
                 finally
