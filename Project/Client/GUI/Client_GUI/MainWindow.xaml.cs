@@ -46,7 +46,6 @@ namespace Client_GUI
             // Local Var setup
             client = new Client(); // Get Client object
 
-
             // Setup background worker
             listeningWorker.DoWork += listeningWorker_DoWork; // Assign do work function
             listeningWorker.WorkerSupportsCancellation = true;
@@ -55,13 +54,6 @@ namespace Client_GUI
             frmMain.Title = "MaChe Messenger";
             txtMsgBox.AppendText("Welcome to MaChe Messenger\r");
             txtMsgBox.AppendText("Send 'q' to quit.\n");
-
-            // Connection mode
-            if (Properties.Settings.Default.ConnectionType == "MANUAL")
-                // Initial Connection
-                startNewConnection(Properties.Settings.Default.ServerAddress, Properties.Settings.Default.Username, Convert.ToInt32(Properties.Settings.Default.ServerPort)); // Connect to server
-            else
-                Macros.AutoFindServer();
             
         }
 
@@ -149,6 +141,26 @@ namespace Client_GUI
 
         #region Event handlers
 
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            // Check if username is set
+            if (Properties.Settings.Default.Username == "")
+            {
+                ChangeUsername changeUserDialog = new ChangeUsername();
+                changeUserDialog.Owner = Application.Current.MainWindow;
+                changeUserDialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
+                changeUserDialog.ShowDialog();
+            }
+
+            // Initial Connection
+            if (Properties.Settings.Default.ConnectionType == "MANUAL")
+                startNewConnection(Properties.Settings.Default.ServerAddress, Properties.Settings.Default.Username, Convert.ToInt32(Properties.Settings.Default.ServerPort)); // Connect to server
+            else
+                Macros.AutoFindServer();
+
+            // Set focus to text input
+            txtUserBox.Focus();
+        }
         private void MainWindow_Closing(object sender, CancelEventArgs e)
         {
             // Send quit string
@@ -171,7 +183,7 @@ namespace Client_GUI
             if (selectedTab.Header.ToString() == "Drawing") // Drawing tab
             {
                 frmMain.Height += 200;
-                inputTabControl.Height += 207;
+                inputTabControl.Height += 190;
             }
             else // text input tab
             {

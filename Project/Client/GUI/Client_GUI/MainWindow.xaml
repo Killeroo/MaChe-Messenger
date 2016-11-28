@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Name="frmMain" x:Class="Client_GUI.MainWindow"
         Title="MainWindow" Height="425" Width="362"
-        ResizeMode="NoResize" Closing="MainWindow_Closing" WindowStartupLocation="CenterScreen">
+        ResizeMode="NoResize" Closing="MainWindow_Closing" WindowStartupLocation="CenterScreen" Loaded="MainWindow_Loaded">
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
@@ -64,15 +64,15 @@
                     </Grid>
                 </TabItem>
                 <TabItem x:Name="drawingTab" Header="Drawing">
-                    <Grid>
+                    <Grid Background="#FFE5E5E5">
                         <Border BorderBrush="Black" BorderThickness="1" HorizontalAlignment="Left" Height="236" Margin="10,10,0,0" VerticalAlignment="Top" Width="239">
                             <Canvas x:Name="drawingCanvas" MouseDown="drawingCanvas_MouseDown" MouseMove="drawingCanvas_MouseMove" Cursor="Pen" Margin="2">
                                 <Canvas.Background>
-                                    <SolidColorBrush Color="White" Opacity="0" />
+                                    <SolidColorBrush Color="White" Opacity="1" />
                                 </Canvas.Background>
                             </Canvas>
                         </Border>
-                        <Button Name="btnCanvasSend" Content="Send" HorizontalAlignment="Left" Height="21" Margin="10,251,0,0" VerticalAlignment="Top" Width="67" Click="btnCanvasSend_Click"/>
+                        <Button Name="btnCanvasSend" Content="Send" HorizontalAlignment="Left" Height="21" Margin="10,251,0,0" VerticalAlignment="Top" Width="67" Click="btnCanvasSend_Click" IsEnabled="False"/>
                         <Button Name="btnCanvasClear" Content="Clear" HorizontalAlignment="Left" Height="21" Margin="82,251,0,0" VerticalAlignment="Top" Width="67" Click="btnCanvasClear_Click"/>
                         <Button Name="btnPenThickness_1" HorizontalAlignment="Left" Margin="259,167,0,0" VerticalAlignment="Top" Width="21" Click="btnPenThickness_1_Click">
                             <Image Source="Resources\Pen_Thickness_1.png" Width="16" Height="16" Margin="0,0,0,0"/>

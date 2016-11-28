@@ -22,7 +22,11 @@ namespace Client_GUI
         public ChangeUsername()
         {
             InitializeComponent();
+
+            // Set focus to text box
             txtUsername.Text = Properties.Settings.Default.Username;
+            txtUsername.Focus();
+            txtUsername.SelectAll();
         }
 
         private void btnOk_Click(object sender, RoutedEventArgs e)
