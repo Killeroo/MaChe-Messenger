@@ -38,12 +38,12 @@ namespace Client_GUI.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("127.0.0.1")]
-        public string ServerAddr {
+        public string ServerAddress {
             get {
-                return ((string)(this["ServerAddr"]));
+                return ((string)(this["ServerAddress"]));
             }
             set {
-                this["ServerAddr"] = value;
+                this["ServerAddress"] = value;
             }
         }
         
@@ -61,25 +61,13 @@ namespace Client_GUI.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
-        public bool RememberSettings {
-            get {
-                return ((bool)(this["RememberSettings"]));
-            }
-            set {
-                this["RememberSettings"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("MANUAL")]
-        public string SearchType {
+        public string ConnectionType {
             get {
-                return ((string)(this["SearchType"]));
+                return ((string)(this["ConnectionType"]));
             }
             set {
-                this["SearchType"] = value;
+                this["ConnectionType"] = value;
             }
         }
     }
