@@ -10,6 +10,4 @@ As of the current build the following has been implemented:
 - Text chat between clients 
 - Paint style drawing functionality
 
-Future features:
-- Auto finding server option for clients
-- Username creation for clients
+Published under MIT
