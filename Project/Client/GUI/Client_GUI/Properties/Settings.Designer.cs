@@ -50,9 +50,9 @@ namespace Client_GUI.Properties {
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("13000")]
-        public string ServerPort {
+        public int ServerPort {
             get {
-                return ((string)(this["ServerPort"]));
+                return ((int)(this["ServerPort"]));
             }
             set {
                 this["ServerPort"] = value;

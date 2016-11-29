@@ -31,7 +31,7 @@ namespace Client_GUI
             // Load user settings 
             txtUsername.Text = Properties.Settings.Default.Username;
             txtServerAddr.Text = Properties.Settings.Default.ServerAddress;
-            txtServerPort.Text = Properties.Settings.Default.ServerPort;
+            txtServerPort.Text = Properties.Settings.Default.ServerPort.ToString();
         }
 
         private void btnConnect_Click(object sender, RoutedEventArgs e)
@@ -39,7 +39,7 @@ namespace Client_GUI
             // Save user settings
             Properties.Settings.Default.Username = txtUsername.Text;
             Properties.Settings.Default.ServerAddress = txtServerAddr.Text;
-            Properties.Settings.Default.ServerPort = txtServerPort.Text;
+            Properties.Settings.Default.ServerPort = Convert.ToInt16(txtServerPort.Text);
             this.Close();
         }
     }

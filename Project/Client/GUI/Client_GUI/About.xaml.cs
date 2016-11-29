@@ -29,7 +29,7 @@ namespace Client_GUI
             var buildDate = Assembly.GetExecutingAssembly().GetLinkerTime();
             lblVersion.Content = "[v" + version + "]";
             lblBuild.Content = "Build [v" + build + "]";
-            lblBuildDate.Content = "Built on " + buildDate.Day + "-" + buildDate.Month + "-" + buildDate.Year + " " + buildDate.Hour + ":" + buildDate.Minute;
+            lblBuildDate.Content = "Built on " + buildDate.Day + "-" + buildDate.Month + "-" + buildDate.Year + " " + buildDate.TimeOfDay;
             
         }
 

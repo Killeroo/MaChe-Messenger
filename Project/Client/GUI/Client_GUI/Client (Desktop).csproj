@@ -61,6 +61,9 @@
       <DependentUpon>ChangeUsername.xaml</DependentUpon>
     </Compile>
     <Compile Include="FlashWindowHelper.cs" />
+    <Compile Include="IPTextBox.xaml.cs">
+      <DependentUpon>IPTextBox.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Settings.xaml.cs">
       <DependentUpon>Settings.xaml</DependentUpon>
     </Compile>
@@ -69,6 +72,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ChangeUsername.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="IPTextBox.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -13,6 +13,8 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+using System.Diagnostics;
+
 using System.ComponentModel;
 
 using System.Net;
@@ -61,11 +63,12 @@ namespace Client_GUI
 
         private void startNewConnection(String serverAddr, String clientUsername, Int32 serverPort) // Connection procedure
         {
+            // Move to client class
             if (client.isConnected)
                 client.Disconnect();
             client.Connect(serverAddr, clientUsername, serverPort);
-            updateStatusBar(client.isConnected);
-            lblServerAddr.Text = "Server: " + client.hostAddr + ":" + client.hostPort;
+            //updateStatusBar(client.isConnected);
+            
             if (client.isConnected)
                 listeningWorker.RunWorkerAsync();
         } 
@@ -82,6 +85,14 @@ namespace Client_GUI
             }
 
             txtUserBox.Clear();
+        }
+
+        // Thread safe access to message box & flash
+        private void messageBox_Add(String message, bool newLine = true, bool flash = false) 
+        {
+            Dispatcher.Invoke(new Action(() => { txtMsgBox.AppendText(message + (newLine ? "\r" : "")); }));
+            if (flash)
+                Dispatcher.Invoke(new Action(() => { flashHelper.FlashApplicationWindow(); }));
         }
 
         // Background connection thread
@@ -128,13 +139,18 @@ namespace Client_GUI
                     }
                 }
                 // TODO: Change this to display exceptions
-                catch (IOException) { }
-                catch (Exception) { }
+                catch (IOException except) { Debug.WriteLine("listener thread: " + except.Message + " " + except.StackTrace); }
+                catch (SocketException except) 
+                { 
+                    Debug.WriteLine("listener thread: " + except.Message + " " + except.StackTrace);
+                    listeningWorker.CancelAsync();
+                }
+                catch (Exception except) { Debug.WriteLine("listener thread: " + except.Message + " " + except.StackTrace); }
                 finally
                 {
                     try
                     {
-                        Dispatcher.Invoke(new Action(() => { this.updateStatusBar(client.Disconnect()); })); // Safely dc and Update GUI
+                        Dispatcher.Invoke(new Action(() => { this.updateStatusBar("DISCONNECTED"); })); // Safely dc and Update GUI
                     }
                     catch (TaskCanceledException) { }
                 }
@@ -156,11 +172,21 @@ namespace Client_GUI
                 changeUserDialog.ShowDialog();
             }
 
+            txtMsgBox.AppendText("\rTrying to connect to server " + Properties.Settings.Default.ServerAddress + " as [" + Properties.Settings.Default.Username + "]\r");
+            updateStatusBar("CONNECTING");
+
             // Initial Connection
             if (Properties.Settings.Default.ConnectionType == "MANUAL")
-                startNewConnection(Properties.Settings.Default.ServerAddress, Properties.Settings.Default.Username, Convert.ToInt32(Properties.Settings.Default.ServerPort)); // Connect to server
+                client.Connect(Properties.Settings.Default.ServerAddress, Properties.Settings.Default.Username, Convert.ToInt32(Properties.Settings.Default.ServerPort)); // Connect to server
             else
                 Macros.AutoFindServer();
+
+            // Update status bar
+            updateStatusBar(client.isConnected ? "CONNECTED" : "DISCONNECTED");
+
+            // Run listener if connected
+            if (client.isConnected)
+                listeningWorker.RunWorkerAsync();
 
             // Set focus to text input
             txtUserBox.Focus();
@@ -196,43 +222,74 @@ namespace Client_GUI
             }
 
         }
-        private void updateStatusBar(bool connected)
+        private void updateStatusBar(string status)
         {
-            if (connected)
+            switch (status.ToUpper()) 
             {
-                lblConnectStatus.Text = "CONNECTED";
-                barItemConnectStatus.Background = Brushes.DarkGreen;
+                case "CONNECTED":
+                    barItemConnectStatus.Background = Brushes.DarkGreen;
+                    lblServerAddr.Text = "Server: " + client.hostAddr + ":" + client.hostPort;
+                    break;
+                case "DISCONNECTED":
+                    barItemConnectStatus.Background = Brushes.DarkRed;
+                    lblServerAddr.Text = "Server: " + client.hostAddr + ":" + client.hostPort;
+                    break;
+                case "CONNECTING":
+                    barItemConnectStatus.Background = Brushes.DarkOrange;
+                    lblServerAddr.Text = "Server: " + Properties.Settings.Default.ServerAddress + ":" + Properties.Settings.Default.ServerPort;
+                    break;
             }
-            else
-            {
-                lblConnectStatus.Text = "DISCONNECTED";
-                barItemConnectStatus.Background = Brushes.DarkRed;
-            }
+            lblConnectStatus.Text = status.ToUpper();
+
         }
 
         // Menu bar events
         private void MenuBar_Connection_New_Click(object sender, RoutedEventArgs e)
         {
             ConnectPopup newConnectionDialog = new ConnectPopup();
+            String prevAddr;
+            int prevPort;
+
+            // Save values for comparision
+            prevAddr = Properties.Settings.Default.ServerAddress;
+            prevPort = Properties.Settings.Default.ServerPort;
+
+            // Setup dialog position
             newConnectionDialog.Owner = Application.Current.MainWindow;
             newConnectionDialog.WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
-            // Disconnect from last server
+            // Stop background listener
             listeningWorker.CancelAsync();
-            if (client.isConnected)
-                client.Disconnect();
+            Debug.WriteLine("1." + listeningWorker.IsBusy);
 
             // Show new connection popup
             newConnectionDialog.ShowDialog();
 
-            // Start new connection 
-            startNewConnection(newConnectionDialog.txtServerAddr.Text, newConnectionDialog.txtUsername.Text, Convert.ToInt32(newConnectionDialog.txtServerPort.Text));
+            // Check if address entered is new
+            if (Properties.Settings.Default.ServerAddress != prevAddr || Properties.Settings.Default.ServerPort != prevPort)
+            {
+                txtMsgBox.AppendText("\rTrying to connect to server " + Properties.Settings.Default.ServerAddress + " as [" + Properties.Settings.Default.Username + "]\r");
+                updateStatusBar("CONNECTING");
+                Debug.WriteLine("2." + listeningWorker.IsBusy);
 
-            // Update message box
-            if (client.isConnected)
-                txtMsgBox.AppendText("\rConnected to MaChe server " + newConnectionDialog.txtServerAddr.Text + " as [" + newConnectionDialog.txtUsername.Text + "]\n");
-            else
-                txtMsgBox.AppendText("\rCould not find server at this address.\n");
+                // Try to connect
+                client.Connect(Properties.Settings.Default.ServerAddress, Properties.Settings.Default.Username, Properties.Settings.Default.ServerPort);
+
+                Debug.WriteLine("3." + listeningWorker.IsBusy);
+
+                // Update message box
+                if (client.isConnected)
+                    txtMsgBox.AppendText("Connected to MaChe server.\n");
+                else
+                    txtMsgBox.AppendText("Could not find server at this address.\n");
+
+                // Update status bar
+                updateStatusBar(client.isConnected ? "CONNECTED" : "DISCONNECTED");
+
+                // Run background listener if connected
+                if (client.isConnected)
+                    listeningWorker.RunWorkerAsync();
+            }
 
         }
         private void MenuBar_Connection_Reconnect_Click(object sender, RoutedEventArgs e) 
@@ -249,7 +306,7 @@ namespace Client_GUI
             //client.Connect(client.hostAddr, client.username, client.hostPort);
             startNewConnection(client.hostAddr, client.username, client.hostPort);
 
-            updateStatusBar(client.isConnected); // Try to connect again
+            //updateStatusBar(client.isConnected); // Try to connect again
 
             if (client.isConnected)
             {

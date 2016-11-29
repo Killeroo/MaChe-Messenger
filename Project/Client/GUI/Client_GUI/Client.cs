@@ -10,6 +10,8 @@ using System.IO;
 
 using System.Drawing;
 
+using System.Diagnostics;
+
 namespace Client_GUI
 {
     /// <summary>
@@ -41,6 +43,10 @@ namespace Client_GUI
         {
             bool blnReturn = false;
 
+            // Check if we are already connected to something
+            if (this.isConnected)
+                this.Disconnect();
+
             serverAddr = server;
             serverPort = port;
             name = username;
@@ -55,12 +61,18 @@ namespace Client_GUI
                 connected = true;
                 blnReturn = true;
             }
-            catch (SocketException)
+            catch (SocketException except)
             {
                 blnReturn = false;
+                Debug.WriteLine("client class: " + except.Message + " " + except.StackTrace);
             }
 
             return blnReturn;
+        }
+
+        public void Reconnect()
+        {
+
         }
 
         private void SendInitialData(string username) // Send inital client data to server
@@ -82,7 +94,6 @@ namespace Client_GUI
 
         public string SendImage(MemoryStream imgMemStream)
         {
-            // TODO: add_drawing
             string strReturn = null;
 
             try
@@ -102,7 +113,7 @@ namespace Client_GUI
             return strReturn;
         }
 
-        public bool Disconnect()//string Disconnect() // Disconnect from messaging server
+        public bool Disconnect() // Disconnect from messaging server
         {
             try
             {
