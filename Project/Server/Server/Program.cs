@@ -32,6 +32,10 @@
 /*  await - https://msdn.microsoft.com/en-GB/library/hh156528.aspx
 /*****************************************************************************/
 
+// TODO: Edit SendClientsMsgAsync to send message with a type
+// TODO: edit client to recieve messages in a similar manner to RecieveClientMessage
+// TODO: change RecieveClientMessage and RecieveServerMessage to RecieveMEssage (do same with structs)
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,6 +53,26 @@ namespace Server
     class Program
     {
         // Global variable declaration
+        //private const Byte INI_TAG = 0;
+        //private const Byte MSG_TAG = 1;
+        //private const Byte[] IMG_TAG = new Byte[] {84, 88, 84, 58}; // TXT:
+
+
+        struct ClientMessage
+        {
+            public string type;
+            public Byte[] content;
+            public int contentLen;
+        }
+
+        struct ClientMessageType
+        {
+            public const string INITIAL = "INI:";
+            public const string TEXT = "TXT:";
+            public const string IMAGE = "IMG:";
+            public const string QUIT = "QUT:";
+        }
+
         private static string version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
         object syncLock = new Object(); // Locking object (stops two threads using same code)
         List<Task> pendingConns = new List<Task>(); // list of connections to be established
@@ -120,6 +144,9 @@ namespace Server
                     var bufferB = new byte[4096];
                     var initialData = networkStream.Read(bufferB, 0, bufferB.Length);
                     var initialString = System.Text.Encoding.UTF8.GetString(bufferB, 0, initialData);
+                    
+                    RecieveClientMessage(bufferB, initialData);
+                    
                     username = initialString.Split(':')[1];
 
                     await SendClientsMsgAsync(username + " has connected."); // tell clients someone has connected
@@ -132,23 +159,32 @@ namespace Server
                     {
                         var buffer = new byte[4096]; // Write and Recieve buffer for client-server stream
                         var clientByteCount = await networkStream.ReadAsync(buffer, 0, buffer.Length); // Read bytes sent by client store in buffer
-                        var clientString = System.Text.Encoding.UTF8.GetString(buffer, 0, clientByteCount); // Convert raw client data from bytes to a string
-                        if (clientString == ":IQUIT:") // Check for 'end-connection' string
-                            break;
-                        else if (clientString == ":IMAGE:") // Check if client is going to send an image 
+
+                        ClientMessage message = RecieveClientMessage(buffer, clientByteCount);
+
+                        switch (message.type)
                         {
-                            /* Send image to all clients */
-                            await SendClientsMsgAsync(":IMAGE:"); // Tell clients an image is being sent
-                            await SendClientsImgAsync(RecieveClientImage(networkStream), username); // Send image
+                            case ClientMessageType.INITIAL:
+                                username = System.Text.Encoding.UTF8.GetString(message.content, 0, message.contentLen).Split(':')[1];
+                                // tell clients someone has connected
+                                await SendClientsMsgAsync(username + " has connected.");
+                                LogMessage("Client [" + username + "] has connected");
+                                LogMessage("Listening to " + username + "...");
+                                break;
+                            case ClientMessageType.TEXT:
+                                string clientText = System.Text.Encoding.UTF8.GetString(message.content, 0, message.contentLen);
+                                LogMessage(clientText, username, "Message");
+                                await SendClientsMsgAsync(clientText, username);
+                                break;
+                            case ClientMessageType.IMAGE:
+                                LogMessage("Sent an image . . .", username, "Info");
+                                await SendClientsImgAsync(message.content, message.contentLen, username); // Send image
+                                break;
+                            case ClientMessageType.QUIT:
+                                connected = false;
+                                break;
                         }
-                        else
-                        {
-                            /* Send out message to all clients */
-                            LogMessage(clientString, username, "Message");
-                            await SendClientsMsgAsync(clientString, username);
-                            //var sendAllTask = SendClientsMsgAsync(clientString, username);
-                            //await sendAllTask;
-                        }
+
                     }
 
                     LogMessage("Disconnected from " + username + ".");
@@ -189,16 +225,13 @@ namespace Server
             }
         } // Broadcasts messages to all connected clients
 
-        private async Task SendClientsImgAsync(MemoryStream imageMemStream, string username)
+        private async Task SendClientsImgAsync(Byte[] imageData, int imageDataLen,  string username)
         {
-            Byte[] buffer = new Byte[4096];
-            buffer = imageMemStream.ToArray(); // Convert image memstream to buffer
-
             foreach (var client in conns)
             {
                 var stream = client.GetStream();
                 
-                await stream.WriteAsync(buffer, 0, buffer.Length); // Write byte array to stream
+                await stream.WriteAsync(imageData, 0, imageData.Length); // Write byte array to stream
             }
         } // Broadcasts images to all connected clients
 
@@ -212,6 +245,18 @@ namespace Server
             var imageMemStream = new MemoryStream(buffer); // Store in memory stream
 
             return imageMemStream; // Return memory stream to be processed further
+        }
+
+        private static ClientMessage RecieveClientMessage(Byte[] rawStream, int len) //List<Byte[]> RecieveClientMessage(Byte[] message, int messageLen)
+        {
+            ClientMessage message;
+            len -= 4; // remove type elements from length
+            message.content = new Byte[len];
+
+            message.type = System.Text.Encoding.UTF8.GetString(rawStream, 0, 4);
+            Buffer.BlockCopy(rawStream, 3, message.content, 0, len);
+            message.contentLen = len;
+            return message;
         }
 
         private static void LogMessage(string message, string header = "Server", string status = "", bool newLine = true)

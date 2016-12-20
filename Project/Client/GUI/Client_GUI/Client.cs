@@ -22,6 +22,23 @@ namespace Client_GUI
     {
         // Client attributes
         private const string QUIT_STRING = ":IQUIT:"; // String to safely DC from server
+        private const string TXT_MSG = ":TXT:";
+
+        struct ClientMessage
+        {
+            public string type;
+            public Byte[] content;
+            public int contentLen;
+        }
+
+        struct ClientMessageType
+        {
+            public const string INITIAL = "INI:";
+            public const string TEXT = "TXT:";
+            public const string IMAGE = "IMG:";
+            public const string QUIT = "QUT:";
+        }
+
         private static NetworkStream stream; // stream used to read and write data to server
         private static TcpClient client; // Stores client info when connected to server
         private bool connected = false;
@@ -78,15 +95,22 @@ namespace Client_GUI
         private void SendInitialData(string username) // Send inital client data to server
         {
             // Safe check username
-            SendMessage("'#INITIALDATA#':" + username + ":"); 
+            SendMessage("username:" + username, ClientMessageType.INITIAL); 
         }
 
-        public void SendMessage(string message) // Send string message to server
+        public void SendMessage(string message, ClientMessageType type) // Send string message to server
         {
             try
             {
                 Byte[] buffer = new Byte[4096]; // Message buffer
+                buffer = System.Text.Encoding.ASCII.GetBytes(type.ToString());
+
+                stream.Write(buffer, 0, buffer.Length);
+
+                buffer = new Byte[4096];
+
                 buffer = System.Text.Encoding.ASCII.GetBytes(message); // Convert ascii string to bytes
+
                 stream.Write(buffer, 0, buffer.Length); // Send message to server
             }
             catch (Exception) { }
@@ -111,6 +135,20 @@ namespace Client_GUI
             }
 
             return strReturn;
+        }
+
+        public ClientMessage RecieveServerMessage(Byte[] rawStream, int len)
+        {
+            ClientMessage message;
+
+            len -= 4; // remove type elements from length
+            message.content = new Byte[len];
+
+            message.type = System.Text.Encoding.UTF8.GetString(rawStream, 0, 4);
+            Buffer.BlockCopy(rawStream, 3, message.content, 0, len);
+            message.contentLen = len;
+
+            return message;
         }
 
         public bool Disconnect() // Disconnect from messaging server
