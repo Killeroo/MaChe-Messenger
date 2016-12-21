@@ -24,14 +24,14 @@ namespace Client_GUI
         private const string QUIT_STRING = ":IQUIT:"; // String to safely DC from server
         private const string TXT_MSG = ":TXT:";
 
-        struct ClientMessage
+        struct Message
         {
             public string type;
             public Byte[] content;
             public int contentLen;
         }
 
-        struct ClientMessageType
+        struct MessageType
         {
             public const string INITIAL = "INI:";
             public const string TEXT = "TXT:";
@@ -95,10 +95,10 @@ namespace Client_GUI
         private void SendInitialData(string username) // Send inital client data to server
         {
             // Safe check username
-            SendMessage("username:" + username, ClientMessageType.INITIAL); 
+            SendMessage("username:" + username, MessageType.INITIAL); 
         }
 
-        public void SendMessage(string message, ClientMessageType type) // Send string message to server
+        public void SendMessage(string message, string type) // Send string message to server
         {
             try
             {
@@ -137,9 +137,9 @@ namespace Client_GUI
             return strReturn;
         }
 
-        public ClientMessage RecieveServerMessage(Byte[] rawStream, int len)
+        public Message RecieveMessage(Byte[] rawStream, int len)
         {
-            ClientMessage message;
+            Message message;
 
             len -= 4; // remove type elements from length
             message.content = new Byte[len];
@@ -155,7 +155,7 @@ namespace Client_GUI
         {
             try
             {
-                SendMessage(QUIT_STRING);
+                SendMessage("", MessageType.QUIT);
                 stream.Close();
                 client.Close();
             }

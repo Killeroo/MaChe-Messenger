@@ -32,9 +32,10 @@
 /*  await - https://msdn.microsoft.com/en-GB/library/hh156528.aspx
 /*****************************************************************************/
 
+// TODO: Change send image in client
+// TODO: Edit background worker in client to user Message
 // TODO: Edit SendClientsMsgAsync to send message with a type
 // TODO: edit client to recieve messages in a similar manner to RecieveClientMessage
-// TODO: change RecieveClientMessage and RecieveServerMessage to RecieveMEssage (do same with structs)
 
 using System;
 using System.Collections.Generic;
@@ -57,15 +58,14 @@ namespace Server
         //private const Byte MSG_TAG = 1;
         //private const Byte[] IMG_TAG = new Byte[] {84, 88, 84, 58}; // TXT:
 
-
-        struct ClientMessage
+        struct Message
         {
             public string type;
             public Byte[] content;
             public int contentLen;
         }
 
-        struct ClientMessageType
+        struct MessageType
         {
             public const string INITIAL = "INI:";
             public const string TEXT = "TXT:";
@@ -145,7 +145,7 @@ namespace Server
                     var initialData = networkStream.Read(bufferB, 0, bufferB.Length);
                     var initialString = System.Text.Encoding.UTF8.GetString(bufferB, 0, initialData);
                     
-                    RecieveClientMessage(bufferB, initialData);
+                    RecieveMessage(bufferB, initialData);
                     
                     username = initialString.Split(':')[1];
 
@@ -160,27 +160,27 @@ namespace Server
                         var buffer = new byte[4096]; // Write and Recieve buffer for client-server stream
                         var clientByteCount = await networkStream.ReadAsync(buffer, 0, buffer.Length); // Read bytes sent by client store in buffer
 
-                        ClientMessage message = RecieveClientMessage(buffer, clientByteCount);
+                        Message message = RecieveMessage(buffer, clientByteCount);
 
                         switch (message.type)
                         {
-                            case ClientMessageType.INITIAL:
+                            case MessageType.INITIAL:
                                 username = System.Text.Encoding.UTF8.GetString(message.content, 0, message.contentLen).Split(':')[1];
                                 // tell clients someone has connected
                                 await SendClientsMsgAsync(username + " has connected.");
                                 LogMessage("Client [" + username + "] has connected");
                                 LogMessage("Listening to " + username + "...");
                                 break;
-                            case ClientMessageType.TEXT:
+                            case MessageType.TEXT:
                                 string clientText = System.Text.Encoding.UTF8.GetString(message.content, 0, message.contentLen);
                                 LogMessage(clientText, username, "Message");
                                 await SendClientsMsgAsync(clientText, username);
                                 break;
-                            case ClientMessageType.IMAGE:
+                            case MessageType.IMAGE:
                                 LogMessage("Sent an image . . .", username, "Info");
                                 await SendClientsImgAsync(message.content, message.contentLen, username); // Send image
                                 break;
-                            case ClientMessageType.QUIT:
+                            case MessageType.QUIT:
                                 connected = false;
                                 break;
                         }
@@ -247,9 +247,9 @@ namespace Server
             return imageMemStream; // Return memory stream to be processed further
         }
 
-        private static ClientMessage RecieveClientMessage(Byte[] rawStream, int len) //List<Byte[]> RecieveClientMessage(Byte[] message, int messageLen)
+        private static Message RecieveMessage(Byte[] rawStream, int len) //List<Byte[]> RecieveClientMessage(Byte[] message, int messageLen)
         {
-            ClientMessage message;
+            Message message;
             len -= 4; // remove type elements from length
             message.content = new Byte[len];
 
