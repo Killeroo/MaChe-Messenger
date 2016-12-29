@@ -81,18 +81,17 @@ namespace Client_GUI
             }
             else if (txtUserBox.Text.Length != 0) // send when there is something to send
             {
-                client.SendMessage(txtUserBox.Text);
+                // Construct message
+                Client.Message msg;
+                msg.type = Client.MessageType.TEXT;
+                msg.content = System.Text.Encoding.ASCII.GetBytes(txtUserBox.Text);
+                msg.contentLen = msg.content.Length;
+                
+                // Send message
+                client.SendMessage(msg);
             }
 
             txtUserBox.Clear();
-        }
-
-        // Thread safe access to message box & flash
-        private void messageBox_Add(String message, bool newLine = true, bool flash = false) 
-        {
-            Dispatcher.Invoke(new Action(() => { txtMsgBox.AppendText(message + (newLine ? "\r" : "")); }));
-            if (flash)
-                Dispatcher.Invoke(new Action(() => { flashHelper.FlashApplicationWindow(); }));
         }
 
         // Background connection thread
@@ -106,34 +105,47 @@ namespace Client_GUI
                 {
                     while (true)
                     {
-                        var buffer = new byte[4096]; // Read buffer
-                        var serverByteCount = stream.Read(buffer, 0, buffer.Length); // Get Bytes sent by server
-                        var serverResponse = System.Text.Encoding.UTF8.GetString(buffer, 0, serverByteCount);
+                        var buffer = new byte[4096]; // Buffer to store message
+
+                        // Wait for server to send message
+                        var serverMsgLen = stream.Read(buffer, 0, buffer.Length);
+                        
+                        // Flash window to show message has been recieved
                         Dispatcher.Invoke(new Action(() => { flashHelper.FlashApplicationWindow(); })); // Flash window when message from server is recieved
-                        if (serverResponse == ":IMAGE:")
+                        
+                        // Store message
+                        Client.Message serverMsg = client.RecieveMessage(buffer, serverMsgLen);
+                        
+                        switch (serverMsg.type)
                         {
-                            // If Image tag, listen for image
-                            buffer = new byte[4096]; // Reset buffer
-                            stream.Read(buffer, 0, buffer.Length); // Listen for image
+                            case Client.MessageType.IMAGE:
+                                // Decode message contents into png
+                                var imgMemStream = new MemoryStream(serverMsg.content); // Store in memory stream
+                                var pngDecorder = new PngBitmapDecoder(imgMemStream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
+                                var pngSource = pngDecorder.Frames[0];
 
-                            var imgMemStream = new MemoryStream(buffer); // Store in memory stream
-                            var pngDecorder = new PngBitmapDecoder(imgMemStream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
-                            var pngSource = pngDecorder.Frames[0];
-                            var img = new System.Windows.Controls.Image();
+                                // Create image object for form
+                                var img = new System.Windows.Controls.Image();
+                                img.Source = pngSource;
+                                img.Width = 120;
 
-                            img.Source = pngSource;
-                            img.Width = 120;
+                                // Create paragraph containing image
+                                Paragraph para = new Paragraph();
+                                para.Inlines.Add((System.Windows.Controls.Image)img);
 
-                            Paragraph para = new Paragraph();
-                            para.Inlines.Add((System.Windows.Controls.Image)img);
+                                // add to textview using dispather
+                                Dispatcher.Invoke(new Action(() => { txtMsgBox.Document.Blocks.Add(para); })); // Access the message box using controls dispatcher for safe multi thread access
+                                
+                                break;
 
-                            // Display using dispather
-                            Dispatcher.Invoke(new Action(() => { txtMsgBox.Document.Blocks.Add(para); })); // Access the message box using controls dispatcher for safe multi thread access
-                        }
-                        else
-                        {
-                            // Display text normally
-                            Dispatcher.Invoke(new Action(() => { txtMsgBox.AppendText(serverResponse + "\r"); })); // Access the message box using controls dispatcher for safe multi thread access
+                            case Client.MessageType.TEXT:
+                                // Convert message contents to text
+                                string serverText = System.Text.Encoding.UTF8.GetString(serverMsg.content);
+                                
+                                // Display text
+                                Dispatcher.Invoke(new Action(() => { txtMsgBox.AppendText(serverMsg + "\r"); }));
+
+                                break;
                         }
                     
                     }
@@ -193,8 +205,6 @@ namespace Client_GUI
         }
         private void MainWindow_Closing(object sender, CancelEventArgs e)
         {
-            // Send quit string
-            client.SendMessage(":IQUIT:");
             client.Disconnect();
         }
         private void txtMsgBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -205,6 +215,12 @@ namespace Client_GUI
         {
             // Update status bar
             lblMsgLength.Text = "Len: " + txtUserBox.Text.Length + "/400";
+
+            // Disable send button if nothing is in text box
+            if (txtUserBox.Text.Length == 0)
+                btnSend.IsEnabled = false;
+            else
+                btnSend.IsEnabled = true;
         }
         private void inputTabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
@@ -405,13 +421,17 @@ namespace Client_GUI
             BitmapEncoder pngEncoder = new PngBitmapEncoder(); // Encode from Bitmap to png
             pngEncoder.Frames.Add(BitmapFrame.Create(canvasBitmapRender));
 
-            //System.IO.MemoryStream memStream = new System.IO.MemoryStream(); // Save to memory stream
-
             // Send png to server 
             using (System.IO.MemoryStream memStream = new System.IO.MemoryStream()) 
             {
                 pngEncoder.Save(memStream);
-                client.SendMessage(":IMAGE:");
+
+                // Construct image message
+                Client.Message imgMsg;
+                imgMsg.type = Client.MessageType.IMAGE;
+                imgMsg.content = memStream.ToArray();
+                imgMsg.contentLen = imgMsg.content.Length;
+
                 txtMsgBox.AppendText(client.SendImage(memStream));
             }
             

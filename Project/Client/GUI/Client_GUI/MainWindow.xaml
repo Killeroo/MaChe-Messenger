@@ -59,7 +59,7 @@
                 <TabItem x:Name="textTab" Header="Text">
                     <Grid Background="#FFE5E5E5">
                         <TextBox x:Name="txtUserBox" HorizontalAlignment="Left" Height="58" Margin="10,26,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="250" KeyDown="txtUser_KeyDown" TextChanged="txtUserBox_TextChanged"/>
-                        <Button x:Name="btnSend" Content="Send" HorizontalAlignment="Left" Height="58" Margin="265,26,0,0" VerticalAlignment="Top" Width="47" Click="btnSend_Click"/>
+                        <Button x:Name="btnSend" Content="Send" HorizontalAlignment="Left" Height="58" Margin="265,26,0,0" VerticalAlignment="Top" Width="47" Click="btnSend_Click" IsEnabled="False" />
                         <CheckBox x:Name="chkEnter" Content="Press 'enter' to send" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="10,0,0,73" IsChecked="True"/>
                     </Grid>
                 </TabItem>

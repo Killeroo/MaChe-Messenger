@@ -20,24 +20,24 @@ namespace Client_GUI
     /// </summary>
     class Client
     {
-        // Client attributes
-        private const string QUIT_STRING = ":IQUIT:"; // String to safely DC from server
-        private const string TXT_MSG = ":TXT:";
-
-        struct Message
+        public struct Message
         {
             public string type;
             public Byte[] content;
             public int contentLen;
         }
 
-        struct MessageType
+        public struct MessageType
         {
             public const string INITIAL = "INI:";
             public const string TEXT = "TXT:";
             public const string IMAGE = "IMG:";
             public const string QUIT = "QUT:";
         }
+
+        // Client attributes
+        private const string QUIT_STRING = ":IQUIT:"; // String to safely DC from server
+        private const string TXT_MSG = ":TXT:";
 
         private static NetworkStream stream; // stream used to read and write data to server
         private static TcpClient client; // Stores client info when connected to server
@@ -94,26 +94,33 @@ namespace Client_GUI
 
         private void SendInitialData(string username) // Send inital client data to server
         {
-            // Safe check username
-            SendMessage("username:" + username, MessageType.INITIAL); 
+            // TODO: Sanity check username
+            // Construct initial message
+            Message iniMsg;
+            iniMsg.type = MessageType.INITIAL;
+            iniMsg.content = System.Text.Encoding.ASCII.GetBytes("username:" + username);
+            iniMsg.contentLen = iniMsg.content.Length;
+
+            // Send message
+            SendMessage(iniMsg); 
         }
 
-        public void SendMessage(string message, string type) // Send string message to server
+        public void SendMessage(Message msg) // Send message to server
         {
             try
             {
-                Byte[] buffer = new Byte[4096]; // Message buffer
-                buffer = System.Text.Encoding.ASCII.GetBytes(type.ToString());
+                Byte[] typeBuffer = new Byte[4096]; // Buffer for message type
+                Byte[] msgBuffer = new Byte[4096]; // Buffer for actual message
 
-                stream.Write(buffer, 0, buffer.Length);
+                // Construct buffers
+                typeBuffer = System.Text.Encoding.ASCII.GetBytes(msg.type);
+                msgBuffer = msg.content;
 
-                buffer = new Byte[4096];
-
-                buffer = System.Text.Encoding.ASCII.GetBytes(message); // Convert ascii string to bytes
-
-                stream.Write(buffer, 0, buffer.Length); // Send message to server
+                // Write buffers to stream
+                stream.Write(typeBuffer, 0, typeBuffer.Length); // Write type buffer first
+                stream.Write(msgBuffer, 0, msgBuffer.Length);
             }
-            catch (Exception) { }
+            catch (Exception) { } // TODO: Add some error feedback
         }
 
         public string SendImage(MemoryStream imgMemStream)
@@ -155,7 +162,16 @@ namespace Client_GUI
         {
             try
             {
-                SendMessage("", MessageType.QUIT);
+                // Construct quit message
+                Message quitMsg;
+                quitMsg.type = MessageType.QUIT;
+                quitMsg.content = new Byte[0];
+                quitMsg.contentLen = 0;
+
+                // Send quit message
+                SendMessage(quitMsg);
+                
+                // Close streams
                 stream.Close();
                 client.Close();
             }
