@@ -4,7 +4,10 @@
 
 MaChe is a small simple messenging application written in C#. It is designed to send text and images (drawn and written within the client) to other client on a LAN network.
 
+***
+
 ![alt text](Screenshots/screenshot2.png "MaChe client in action")
+![alt text](Screenshots/screenshot3.png "")
 
 All that is required is MaChe server running on the network then multiple clients can connect and chat.
 
@@ -29,7 +32,6 @@ Like the server, all you need to do is run the client. It will try to connect to
 ## Screenshots
 
 ![alt text](Screenshots/screenshot1.png "")
-![alt text](Screenshots/screenshot3.png "")
 ![alt text](Screenshots/screenshot4.png "")
 
 
