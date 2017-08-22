@@ -30,8 +30,8 @@ Like the server, all you need to do is run the client. It will try to connect to
 
 ## Screenshots
 
-![alt text](Screenshots/screenshot1.png "")
 ![alt text](Screenshots/screenshot3.png "")
+![alt text](Screenshots/screenshot1.png "")
 ![alt text](Screenshots/screenshot4.png "")
 
 
