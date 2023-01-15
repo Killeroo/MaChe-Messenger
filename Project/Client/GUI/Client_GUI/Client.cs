@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
-
 using System.Drawing;
-
 using System.Diagnostics;
+
+using MaChe.Common;
+using System.Windows.Documents.DocumentStructures;
 
 namespace Client_GUI
 {
@@ -20,25 +20,6 @@ namespace Client_GUI
     /// </summary>
     class Client
     {
-        public struct Message
-        {
-            public string type;
-            public Byte[] content;
-            public int contentLen;
-        }
-
-        public struct MessageType
-        {
-            public const string INITIAL = "INI:";
-            public const string TEXT = "TXT:";
-            public const string IMAGE = "IMG:";
-            public const string QUIT = "QUT:";
-        }
-
-        // Client attributes
-        private const string QUIT_STRING = ":IQUIT:"; // String to safely DC from server
-        private const string TXT_MSG = ":TXT:";
-
         private static NetworkStream stream; // stream used to read and write data to server
         private static TcpClient client; // Stores client info when connected to server
         private bool connected = false;
@@ -96,10 +77,12 @@ namespace Client_GUI
         {
             // TODO: Sanity check username
             // Construct initial message
-            Message iniMsg;
-            iniMsg.type = MessageType.INITIAL;
-            iniMsg.content = System.Text.Encoding.ASCII.GetBytes("username:" + username);
-            iniMsg.contentLen = iniMsg.content.Length;
+            Message iniMsg = new Message
+            {
+                Type = MessageType.Initial,
+                Content = System.Text.Encoding.ASCII.GetBytes(username),
+                Username = username
+            };
 
             // Send message
             SendMessage(iniMsg); 
@@ -107,20 +90,16 @@ namespace Client_GUI
 
         public void SendMessage(Message msg) // Send message to server
         {
-            try
-            {
-                Byte[] typeBuffer = new Byte[4096]; // Buffer for message type
-                Byte[] msgBuffer = new Byte[4096]; // Buffer for actual message
+            msg.Username = name;
 
-                // Construct buffers
-                typeBuffer = System.Text.Encoding.ASCII.GetBytes(msg.type);
-                msgBuffer = msg.content;
+            //try
+            //{
+                byte[] data = msg.ToBytes();
 
                 // Write buffers to stream
-                stream.Write(typeBuffer, 0, typeBuffer.Length); // Write type buffer first
-                stream.Write(msgBuffer, 0, msgBuffer.Length);
-            }
-            catch (Exception) { } // TODO: Add some error feedback
+                stream.Write(data.ToArray(), 0, data.Length); // Write type buffer first
+            //}
+            //catch (Exception) { } // TODO: Add some error feedback
         }
 
         public string SendImage(MemoryStream imgMemStream)
@@ -129,7 +108,7 @@ namespace Client_GUI
 
             try
             {
-                Byte[] buffer = new Byte[4096];
+                Byte[] buffer = new Byte[16384];
                 buffer = imgMemStream.ToArray();
                 stream.Write(buffer, 0, buffer.Length);
 
@@ -144,29 +123,15 @@ namespace Client_GUI
             return strReturn;
         }
 
-        public Message RecieveMessage(Byte[] rawStream, int len)
-        {
-            Message message;
-
-            len -= 4; // remove type elements from length
-            message.content = new Byte[len];
-
-            message.type = System.Text.Encoding.UTF8.GetString(rawStream, 0, 4);
-            Buffer.BlockCopy(rawStream, 3, message.content, 0, len);
-            message.contentLen = len;
-
-            return message;
-        }
-
         public bool Disconnect() // Disconnect from messaging server
         {
             try
             {
                 // Construct quit message
-                Message quitMsg;
-                quitMsg.type = MessageType.QUIT;
-                quitMsg.content = new Byte[0];
-                quitMsg.contentLen = 0;
+                Message quitMsg = new Message();
+                quitMsg.Type = MessageType.Quit;
+                quitMsg.Username = name;
+                quitMsg.Content = new byte[0];
 
                 // Send quit message
                 SendMessage(quitMsg);

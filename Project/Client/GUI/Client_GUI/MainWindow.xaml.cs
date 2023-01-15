@@ -12,16 +12,14 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-
 using System.Diagnostics;
-
 using System.ComponentModel;
-
 using System.Net;
 using System.Net.Sockets;
 using System.IO;
-
 using System.Drawing.Imaging;
+
+using MaChe.Common;
 
 namespace Client_GUI
 {
@@ -82,10 +80,9 @@ namespace Client_GUI
             else if (txtUserBox.Text.Length != 0) // send when there is something to send
             {
                 // Construct message
-                Client.Message msg;
-                msg.type = Client.MessageType.TEXT;
-                msg.content = System.Text.Encoding.ASCII.GetBytes(txtUserBox.Text);
-                msg.contentLen = msg.content.Length;
+                Message msg = new Message();
+                msg.Type = MessageType.Text;
+                msg.Content = System.Text.Encoding.ASCII.GetBytes(txtUserBox.Text);
                 
                 // Send message
                 client.SendMessage(msg);
@@ -105,45 +102,58 @@ namespace Client_GUI
                 {
                     while (true)
                     {
-                        var buffer = new byte[4096]; // Buffer to store message
+                        var buffer = new byte[16384]; // Buffer to store message
 
                         // Wait for server to send message
                         var serverMsgLen = stream.Read(buffer, 0, buffer.Length);
                         
                         // Flash window to show message has been recieved
                         Dispatcher.Invoke(new Action(() => { flashHelper.FlashApplicationWindow(); })); // Flash window when message from server is recieved
-                        
+
                         // Store message
-                        Client.Message serverMsg = client.RecieveMessage(buffer, serverMsgLen);
+                        Message serverMsg = new Message();
+                        serverMsg.FromBytes(buffer);
                         
-                        switch (serverMsg.type)
+                        switch (serverMsg.Type)
                         {
-                            case Client.MessageType.IMAGE:
-                                // Decode message contents into png
-                                var imgMemStream = new MemoryStream(serverMsg.content); // Store in memory stream
-                                var pngDecorder = new PngBitmapDecoder(imgMemStream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
-                                var pngSource = pngDecorder.Frames[0];
-
-                                // Create image object for form
-                                var img = new System.Windows.Controls.Image();
-                                img.Source = pngSource;
-                                img.Width = 120;
-
-                                // Create paragraph containing image
-                                Paragraph para = new Paragraph();
-                                para.Inlines.Add((System.Windows.Controls.Image)img);
+                            case MessageType.Image:
 
                                 // add to textview using dispather
-                                Dispatcher.Invoke(new Action(() => { txtMsgBox.Document.Blocks.Add(para); })); // Access the message box using controls dispatcher for safe multi thread access
+                                Dispatcher.Invoke(new Action(() => {
+
+                                    // Decode message contents into png
+                                    var imgMemStream = new MemoryStream(serverMsg.Content); // Store in memory stream
+                                    var pngDecorder = new PngBitmapDecoder(imgMemStream, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
+                                    var pngSource = pngDecorder.Frames[0];
+
+                                    // Create image object for form
+                                    var img = new System.Windows.Controls.Image();
+                                    img.Source = pngSource;
+                                    img.Width = 120;
+
+                                    // Create paragraph containing image
+                                    Paragraph para = new Paragraph();
+                                    para.Inlines.Add((System.Windows.Controls.Image)img);
+
+                                    txtMsgBox.AppendText(string.Format("[{0}] [{1}] ",
+                                    DateTime.Now,
+                                    serverMsg.Username));
+
+                                    txtMsgBox.Document.Blocks.Add(para);
+                                    txtMsgBox.AppendText("\r");
+                                })); // Access the message box using controls dispatcher for safe multi thread access
                                 
                                 break;
 
-                            case Client.MessageType.TEXT:
+                            case MessageType.Text:
                                 // Convert message contents to text
-                                string serverText = System.Text.Encoding.UTF8.GetString(serverMsg.content);
+                                string serverText = System.Text.Encoding.ASCII.GetString(serverMsg.Content);
                                 
                                 // Display text
-                                Dispatcher.Invoke(new Action(() => { txtMsgBox.AppendText(serverMsg + "\r"); }));
+                                Dispatcher.Invoke(new Action(() => { txtMsgBox.AppendText(string.Format("[{0}] [{1}] {2} \r",
+                                    DateTime.Now,
+                                    serverMsg.Username,
+                                    serverText)); }));
 
                                 break;
                         }
@@ -157,7 +167,7 @@ namespace Client_GUI
                     Debug.WriteLine("listener thread: " + except.Message + " " + except.StackTrace);
                     listeningWorker.CancelAsync();
                 }
-                catch (Exception except) { Debug.WriteLine("listener thread: " + except.Message + " " + except.StackTrace); }
+                //catch (Exception except) { Debug.WriteLine("listener thread: " + except.Message + " " + except.StackTrace); }
                 finally
                 {
                     try
@@ -418,6 +428,7 @@ namespace Client_GUI
                                                                            (int)canvasRect.Bottom,
                                                                            96d, 96d,
                                                                            System.Windows.Media.PixelFormats.Default);
+            canvasBitmapRender.Render(drawingCanvas);
             BitmapEncoder pngEncoder = new PngBitmapEncoder(); // Encode from Bitmap to png
             pngEncoder.Frames.Add(BitmapFrame.Create(canvasBitmapRender));
 
@@ -427,12 +438,15 @@ namespace Client_GUI
                 pngEncoder.Save(memStream);
 
                 // Construct image message
-                Client.Message imgMsg;
-                imgMsg.type = Client.MessageType.IMAGE;
-                imgMsg.content = memStream.ToArray();
-                imgMsg.contentLen = imgMsg.content.Length;
+                Message msg = new Message
+                {
+                    Type = MessageType.Image,
+                    Content = memStream.ToArray()
+                };
 
-                txtMsgBox.AppendText(client.SendImage(memStream));
+                client.SendMessage(msg);
+
+                //txtMsgBox.AppendText("asfasf");
             }
             
         }

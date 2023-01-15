@@ -100,7 +100,7 @@ namespace Client
         {
             try
             {
-                Byte[] buffer = new Byte[4096]; // Message buffer
+                Byte[] buffer = new Byte[16384]; // Message buffer
 
                 // Convert ascii string to bytes to be sent
                 buffer = System.Text.Encoding.ASCII.GetBytes(message);

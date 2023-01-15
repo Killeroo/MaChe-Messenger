@@ -41,33 +41,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-
 using System.Drawing;
+
+using MaChe.Common;
 
 namespace Server
 {
     class Program
     {
-
-        struct Message
-        {
-            public string type;
-            public Byte[] content;
-            public int contentLen;
-        }
-
-        struct MessageType
-        {
-            public const string INITIAL = "INI:";
-            public const string TEXT = "TXT:";
-            public const string IMAGE = "IMG:";
-            public const string QUIT = "QUT:";
-        }
-
         private static string version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version.ToString();
         object syncLock = new Object(); // Locking object (stops two threads using same code)
         List<Task> pendingConns = new List<Task>(); // list of connections to be established
@@ -138,51 +122,57 @@ namespace Server
                     /* Message Listening Loop */
                     while (connected)
                     {
-                        Message clientMsg; // Message coming from client
-                        Message serverMsg; // Server's response to client
+                        Message receivedMessage = new Message(); // Message coming from client
+                        Message responseMessage = new Message(); // Server's response to client
 
                         // Wait for a message from client
-                        var buffer = new byte[4096]; // Write and Recieve buffer for client-server stream
-                        var clientByteCount = await networkStream.ReadAsync(buffer, 0, buffer.Length); // Read bytes sent by client store in buffer
+                        var buffer = new byte[16384]; // Write and Recieve buffer for client-server stream
+                        int clientByteCount = await networkStream.ReadAsync(buffer, 0, buffer.Length); // Read bytes sent by client store in buffer
                         // Store incoming message
-                        clientMsg = RecieveMessage(buffer, clientByteCount);
+                        receivedMessage.FromBytes(buffer);
 
                         // React to type of client message
-                        switch (clientMsg.type)
+                        switch (receivedMessage.Type)
                         {
-                            case MessageType.INITIAL:
+                            case MessageType.Initial:
                                 // Get user name from initial client message
-                                username = System.Text.Encoding.UTF8.GetString(clientMsg.content, 0, clientMsg.contentLen).Split(':')[1];
+                                username = System.Text.Encoding.ASCII.GetString(receivedMessage.Content, 0, receivedMessage.ContentLength);
                                 // Construct message for other client
-                                serverMsg.type = MessageType.TEXT;
-                                serverMsg.content = System.Text.Encoding.ASCII.GetBytes(username + " has connected.");
-                                serverMsg.contentLen = serverMsg.content.Length;
+                                responseMessage.Type = MessageType.Text;
+                                responseMessage.Content = System.Text.Encoding.ASCII.GetBytes(username + " has connected.");
                                 // Log client connecting
                                 LogMessage("Client [" + username + "] has connected");
                                 // Send server response to other clients
-                                await SendMessageAsync(serverMsg);
+                                await SendMessageAsync(responseMessage, username);
                                 break;
-                            case MessageType.TEXT:
+                            case MessageType.Text:
                                 // Get text from client message
-                                string clientText = System.Text.Encoding.UTF8.GetString(clientMsg.content, 0, clientMsg.contentLen);
-                                // Construct message for other client
-                                serverMsg.type = MessageType.TEXT;
-                                serverMsg.content = System.Text.Encoding.ASCII.GetBytes("[" + username + "] " + clientText); // Send on client message with username of sender
-                                serverMsg.contentLen = serverMsg.content.Length;
+                                string clientText = System.Text.Encoding.ASCII.GetString(receivedMessage.Content, 0, receivedMessage.ContentLength);
+                                //// Construct message for other client
+                                //responseMessage.Type = MessageType.Text;
+                                //responseMessage.Content = System.Text.Encoding.ASCII.GetBytes("[" + username + "] " + clientText); // Send on client message with username of sender
+                                
                                 // Log client message
                                 LogMessage(clientText, username, "Message");
                                 // Send server response to other clients
-                                await SendMessageAsync(serverMsg);
+                                await SendMessageAsync(receivedMessage, username);
                                 break;
-                            case MessageType.IMAGE:
+                            case MessageType.Image:
                                 // Construct message for other client
-                                serverMsg = clientMsg; // Send on copy of client message
+                                responseMessage = receivedMessage; // Send on copy of client message
+
+                                //foreach (var data in  receivedMessage.Content)
+                                //{
+                                //    Console.Write(data.ToString("X"));
+                                //}
+                                //Console.WriteLine();
+
                                 // Log image sent
-                                LogMessage("Sent an image . . .", username, "Info");
+                                LogMessage("Sent an image, size=" + responseMessage.ContentLength + "bytes", username);
                                 // Send server response to other clients
-                                await SendMessageAsync(serverMsg);
+                                await SendMessageAsync(responseMessage, username);
                                 break;
-                            case MessageType.QUIT:
+                            case MessageType.Quit:
                                 connected = false;
                                 break;
                             default:
@@ -207,55 +197,32 @@ namespace Server
                 lock (syncLock)
                     conns.Remove(tcpClient); // Remove client from active connections
             }
-            
+
             // Construct client disconnected message
-            Message dcMsg;
-            dcMsg.type = MessageType.TEXT;
-            dcMsg.content = System.Text.Encoding.ASCII.GetBytes(username + " has disconnected.");
-            dcMsg.contentLen = dcMsg.content.Length;
-            await SendMessageAsync(dcMsg); 
+            Message dcMsg = new Message
+            {
+                Type = MessageType.Text,
+                Content = System.Text.Encoding.ASCII.GetBytes(username + " has disconnected.")
+            };
+            await SendMessageAsync(dcMsg, username); 
 
         } // Handle client connection
 
-        private async Task SendMessageAsync(Message msg)
+        private async Task SendMessageAsync(Message msg, string username)
         {
-            Byte[] typeBuffer = new Byte[4096]; // Buffer containing message type
-            Byte[] msgBuffer = new Byte[4096]; // Buffer containing actual message
-
-            // Construct buffers
-            typeBuffer = System.Text.Encoding.ASCII.GetBytes(msg.type);
-            msgBuffer = msg.content;
+            msg.Username = username;
+            byte[] data = msg.ToBytes();
 
             // Send message to all currently connected clients
             foreach (var client in conns) 
             {
                 // Get stream for current client
-                var stream = client.GetStream();
+                NetworkStream stream = client.GetStream();
+
                 // Send message type first
-                await stream.WriteAsync(typeBuffer, 0, typeBuffer.Length);
-                // Then send message contents
-                await stream.WriteAsync(msgBuffer, 0, msgBuffer.Length);
+                await stream.WriteAsync(data, 0, data.Length);
             }
         } // Broadcasts messages to all connected clients
-
-        private static Message RecieveMessage(Byte[] rawStream, int len) //List<Byte[]> RecieveClientMessage(Byte[] message, int messageLen)
-        {
-            Message message;
-
-            // TODO: fix exception when debug closes client
-
-            len -= 4; // Remove 4 type elements to get length of content
-            message.content = new Byte[len]; // Create byte array to size of message contents
-
-            // Get message type from first 4 elements of the stream
-            message.type = System.Text.Encoding.UTF8.GetString(rawStream, 0, 4);
-            // Copy the message content from the stream to message.content
-            Buffer.BlockCopy(rawStream, 3, message.content, 0, len);
-            // Set the content length
-            message.contentLen = len;
-
-            return message;
-        }
 
         private static void LogMessage(string message, string header = "Server", string status = "", bool newLine = true)
         {

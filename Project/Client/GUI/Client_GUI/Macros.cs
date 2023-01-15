@@ -57,7 +57,7 @@ namespace Client_GUI
 
             try
             {
-                byte[] readBuffer = new byte[4096];
+                byte[] readBuffer = new byte[16384];
 
                 int totalBytesRead = 0;
                 int bytesRead;

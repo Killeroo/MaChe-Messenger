@@ -1,6 +1,6 @@
 # MaChe Messenger
 
-[![version](https://img.shields.io/badge/version-0.5-yellow.svg)]() ![maintained](https://img.shields.io/maintenance/yes/2017.svg)
+[![version](https://img.shields.io/badge/version-1.0-green.svg)]() 
 
 MaChe is a small simple messenging application written in C#. It is designed to send text and images (drawn and written within the client) to other client on a LAN network.
 
